@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: 
-
-Sitemap: http://this.pro-yy.com/sitemap.xml 
