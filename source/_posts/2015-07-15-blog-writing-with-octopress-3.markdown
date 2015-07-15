@@ -28,7 +28,7 @@ categories:
   rake preview
 ```
 
-http://localhost:4000
+preview at http://localhost:4000
 
 # deploy
 
