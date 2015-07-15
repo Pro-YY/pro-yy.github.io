@@ -42,3 +42,12 @@ preview at http://localhost:4000
   git commit -asm 'new post'
   git push
 ```
+
+# update octopress
+```
+  git remote add octopress git://github.com/imathis/octopress.git
+  git pull octopress master
+  bundle install
+  rake update_source
+  rake update_style
+```
