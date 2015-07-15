@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://pro-yy.github.io/sitemap.xml 
+Sitemap: http://this.pro-yy.com/sitemap.xml 
