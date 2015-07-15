@@ -133,6 +133,20 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>  git commit -asm 'new post'
 </span><span class='line'>  git push</span></code></pre></td></tr></table></div></figure>
 
+
+<h1>update octopress</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  git remote add octopress git://github.com/imathis/octopress.git
+</span><span class='line'>  git pull octopress master
+</span><span class='line'>  bundle install
+</span><span class='line'>  rake update_source
+</span><span class='line'>  rake update_style</span></code></pre></td></tr></table></div></figure>
+
 </div>
   
   
