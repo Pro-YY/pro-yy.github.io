@@ -5,12 +5,14 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Blog Archive - YangYang's Notes</title>
+  <title>Blog Writing With Octopress 3 - YangYang's Notes</title>
   <meta name="author" content="杨阳">
 
   
-  <meta name="description" content="Blog Archive 2015 Blog Writing With Octopress 3
-Jul 15 2015 Recent Posts Blog Writing With Octopress 3 GitHub Repos Status updating... @Pro-YY on &hellip;">
+  <meta name="description" content="initialize workspace 1
+2
+3
+4 git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source cd pro-yy.github.io/ git clone git@github.com:Pro-YY/pro- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +21,7 @@ Jul 15 2015 Recent Posts Blog Writing With Octopress 3 GitHub Repos Status updat
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://this.pro-yy.com/blog/archives/">
+  <link rel="canonical" href="http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="YangYang's Notes" type="application/atom+xml">
@@ -65,31 +67,104 @@ Jul 15 2015 Recent Posts Blog Writing With Octopress 3 GitHub Repos Status updat
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Blog Archive</h1>
+    
+      <h1 class="entry-title">Blog Writing With Octopress 3</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-15T20:38:31+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:38 pm</span></time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives">
 
 
+<div class="entry-content"><h1>initialize workspace</h1>
 
-  
-  <h2>2015</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source
+</span><span class='line'>  cd pro-yy.github.io/
+</span><span class='line'>  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b master _deploy
+</span><span class='line'>  bundle install</span></code></pre></td></tr></table></div></figure>
 
-<article>
-  
-<h1><a href="/blog/2015/07/15/blog-writing-with-octopress-3/">Blog Writing With Octopress 3</a></h1>
-<time datetime="2015-07-15T20:38:31+08:00" pubdate><span class='month'>Jul</span> <span class='day'>15</span> <span class='year'>2015</span></time>
+
+<h1>write post</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  rake new_post["Blog Writing with Octopress 3"]
+</span><span class='line'>  vim source/_posts/2015-07-15-blog-writing-with-octopress-3.markdown</span></code></pre></td></tr></table></div></figure>
 
 
-</article>
+<h1>preview</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  rake generate
+</span><span class='line'>  rake preview</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://localhost:4000">http://localhost:4000</a></p>
+
+<h1>deploy</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  rake deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>commit source</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  git commit -asm 'new post'
+</span><span class='line'>  git push</span></code></pre></td></tr></table></div></figure>
 
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">杨阳</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-07-15T20:38:31+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:38 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3/" data-via="" data-counturl="http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+    </p>
+  </footer>
 </article>
 
 </div>
