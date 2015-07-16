@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2015-07-16T20:47:25+08:00</updated>
+  <updated>2015-07-16T20:49:02+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -22,7 +22,7 @@
 
 <p>  OS: Ubuntu-14.04 server</p>
 
-<p>  PHP: 5.6.7 source build</p>
+<p>  PHP: 5.6.8 source build</p>
 
 <h2>install memcached with apt-get</h2>
 
