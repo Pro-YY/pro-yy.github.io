@@ -41,8 +41,8 @@ var sio = socketio(server);
 配置Redis会话存储HTTP会话
 ```
 var sessionMiddleware = session({
-  name: 'mdd_web:sess',
-  secret: 'mdd_web',
+  name: 'XXX:sess',
+  secret: 'XXX',
   proxy: true,
   resave: false,
   store: new RedisStore(),
