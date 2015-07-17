@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2015-07-16T20:49:02+08:00</updated>
+  <updated>2015-07-17T18:26:42+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -12,6 +12,197 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Session With Express and Nginx]]></title>
+    <link href="http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx/"/>
+    <updated>2015-07-17T17:12:56+08:00</updated>
+    <id>http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx</id>
+    <content type="html"><![CDATA[<h1>为什么一定要持久化存储会话信息</h1>
+
+<p>如果会话信息仅仅存储在内存&hellip;</p>
+
+<ul>
+<li>服务器重启，用户将会登出</li>
+<li>无法在多个node进程(或集群环境)中共享会话</li>
+</ul>
+
+
+<p>所以，会话(无论是HTTP会话还是Web-Socket会话)都需要在服务器端持久化存储在数据库中，如Redis/Mongo。</p>
+
+<p>环境： Express 4.12.2， Nginx 1.8.0</p>
+
+<h1>Express添加Redis会话存储</h1>
+
+<p>需要的相关库或组件：</p>
+
+<ul>
+<li><a href="https://www.npmjs.com/package/connect-redis">connect-redis</a>: Redis会话存储。</li>
+<li><a href="https://www.npmjs.com/package/socket.io-redis">socket.io-redis</a>: 多个socket.io进程实例可以彼此触发/广播事件。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var http = require('http');
+</span><span class='line'>var socketio = require('socket.io');
+</span><span class='line'>var session = require('express-session');           // 会话支持
+</span><span class='line'>var passport = require('passport');                 // 身份认证，依赖express-session
+</span><span class='line'>var RedisStore = require('connect-redis')(session); // redis存储，用于持久化会话
+</span><span class='line'>var RedisAdapter = require('socket.io-redis');      // 存储web-socket的连接
+</span><span class='line'>var mongoose = require('mongoose');
+</span><span class='line'>// ...
+</span><span class='line'>var app = express();
+</span><span class='line'>var server = http.Server(app);
+</span><span class='line'>var sio = socketio(server);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置Redis会话存储HTTP会话</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var sessionMiddleware = session({
+</span><span class='line'>  name: 'mdd_web:sess',
+</span><span class='line'>  secret: 'mdd_web',
+</span><span class='line'>  proxy: true,
+</span><span class='line'>  resave: false,
+</span><span class='line'>  store: new RedisStore(),
+</span><span class='line'>  saveUninitialized: false,
+</span><span class='line'>  cookie: {
+</span><span class='line'>    //secure: true, // only https
+</span><span class='line'>    maxAge: 7*24*60*60*1000 // 1 week
+</span><span class='line'>  }
+</span><span class='line'>});
+</span><span class='line'>// 应用会话存储中间件
+</span><span class='line'>app.use(sessionMiddleware);
+</span><span class='line'>// passport登录认证
+</span><span class='line'>app.use(passport.initialize());
+</span><span class='line'>app.use(passport.session());</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置Redis会话存储Web-Socket会话</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sio.adapter(RedisAdapter({host: 'localhost', port: 6379}));
+</span><span class='line'>// 为socket server添加redis存储的中间件
+</span><span class='line'>sio.use(function(socket, next) {
+</span><span class='line'>  sessionMiddleware(socket.request, socket.request.res, next);
+</span><span class='line'>});
+</span><span class='line'>// 对未登录的用户禁用socket支持
+</span><span class='line'>sio.use(function(socket, next){
+</span><span class='line'>  var passport = socket.request.session.passport;
+</span><span class='line'>  if (!passport || !passport.user) {
+</span><span class='line'>    logger.debug('no socket support without login');
+</span><span class='line'>    next(new Error('Authentication error'));
+</span><span class='line'>  }
+</span><span class='line'>  else next();
+</span><span class='line'>});</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Nginx配置支持负载均衡</h1>
+
+<p>Web-Socket的连接建立需要同一个tcp连接上的多次握手支持，要求比一般的HTTP会话高一些。
+所以为实现多进程的共享会话支持，需要配置支持iphash的upstream。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>upstream nodes {
+</span><span class='line'>  ip_hash;
+</span><span class='line'>  server localhost:8001;
+</span><span class='line'>  server localhost:8002;
+</span><span class='line'>  server localhost:8003;
+</span><span class='line'>  server localhost:8004;
+</span><span class='line'>  keepalive 512;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>server{
+</span><span class='line'>  listen 443 ssl;
+</span><span class='line'>  server_name example.com;
+</span><span class='line'>  location / {
+</span><span class='line'>    proxy_set_header Upgrade $http_upgrade;
+</span><span class='line'>    proxy_set_header Connection "upgrade";
+</span><span class='line'>    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+</span><span class='line'>    proxy_set_header Host $host;
+</span><span class='line'>    proxy_http_version 1.1;
+</span><span class='line'>    proxy_pass http://nodes;
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，可以用pm2启动多个node服务进程，但必须以fork mode启动，而不是-i的集群方式启动，负载均衡完全交给nginx即可。
+如此：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pm2 start -f --name web1 app.js -- 8001
+</span><span class='line'>pm2 start -f --name web2 app.js -- 8002
+</span><span class='line'>pm2 start -f --name web3 app.js -- 8003
+</span><span class='line'>pm2 start -f --name web4 app.js -- 8004</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>参考资料</h1>
+
+<p><a href="http://socket.io/docs/using-multiple-nodes/">Socket.io doc: using multiple nodes</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Installing Memcache With PHP]]></title>
