@@ -24,7 +24,7 @@ categories:
 - [connect-redis](https://www.npmjs.com/package/connect-redis): Redis会话存储。
 - [socket.io-redis](https://www.npmjs.com/package/socket.io-redis): 多个socket.io进程实例可以彼此触发/广播事件。
 
-```
+{% codeblock lang:javascript app.js %}
 var http = require('http');
 var socketio = require('socket.io');
 var session = require('express-session');           // 会话支持
@@ -36,10 +36,10 @@ var mongoose = require('mongoose');
 var app = express();
 var server = http.Server(app);
 var sio = socketio(server);
-```
+{% endcodeblock %}
 
 配置Redis会话存储HTTP会话
-```
+{% codeblock lang:javascript app.js %}
 var sessionMiddleware = session({
   name: 'XXX:sess',
   secret: 'XXX',
@@ -57,10 +57,10 @@ app.use(sessionMiddleware);
 // passport登录认证
 app.use(passport.initialize());
 app.use(passport.session());
-```
+{% endcodeblock %}
 
 配置Redis会话存储Web-Socket会话
-```
+{% codeblock lang:javascript app.js %}
 sio.adapter(RedisAdapter({host: 'localhost', port: 6379}));
 // 为socket server添加redis存储的中间件
 sio.use(function(socket, next) {
@@ -75,7 +75,7 @@ sio.use(function(socket, next){
   }
   else next();
 });
-```
+{% endcodeblock %}
 
 
 # Nginx配置支持负载均衡
