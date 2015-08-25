@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>SSH Port Forwarding - YangYang's Notes</title>
+  <meta name="author" content="杨阳">
+
+  
+  <meta name="description" content="Overview 利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。 Environment L0: localhost behind NAT, with lan ip 192.168.0.100
+L1: host within same &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="YangYang's Notes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">YangYang's Notes</a></h1>
+  
+    <h2>practice more, share more</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="this.pro-yy.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">SSH Port Forwarding</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-17T09:29:47+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:29 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Overview</h2>
+
+<p>利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。</p>
+
+<h2>Environment</h2>
+
+<ul>
+<li><strong>L0</strong>: localhost behind <em>NAT</em>, with lan ip <strong>192.168.0.100</strong></li>
+<li><strong>L1</strong>: host within same lan of L0, with lan ip <strong>192.168.0.101</strong></li>
+<li><strong>R0</strong>: remote host (<em>cloud vps</em>) with private ip <strong>10.0.0.100</strong></li>
+<li><strong>R1</strong>: remote host (<em>cloud vps</em>) with private ip <strong>10.0.0.101</strong></li>
+</ul>
+
+
+<p>L0 can ssh (default port 22) to R0 by its public domain name <strong>r0.example.com</strong> with public key, like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/images/ssh-port-forwarding/0.png" alt="" /></p>
+
+<h2>Forwarding local host (-L)</h2>
+
+<h3>Usage</h3>
+
+<blockquote><p>Specifies that the given port on the local (client) host is to be forwarded to the given host and port on the remote side.</p></blockquote>
+
+
+<p>SSH -L is good for exposing a remote port locally.</p>
+
+<p>增强本地主机的访问远程主机（局域网）能力。</p>
+
+<h3>Example</h3>
+
+<h4>1. Forward L0 to R0</h4>
+
+<p>The mongod has the http web service, listening only on localhost:28017. With the following command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then the remote service on 28017 will be accessed on L0&rsquo;s 28018 port from L0.
+<img src="/images/ssh-port-forwarding/1.png" alt="" /></p>
+
+<h4>2. Forward L0 to R1</h4>
+
+<p>Suggest that there&rsquo;s an API server on R1, listening only on port 10030 of lan (10.0.0.0/24).
+Because R0 can access R1&rsquo;s private address of the same lan, so the following command will make R1&rsquo;s service of port 10030 accessible from L0&rsquo;s local port 10031.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note, use R1&rsquo;s private ip <em>10.0.0.101</em> instead of <em>localhost</em>.</p>
+
+<p><img src="/images/ssh-port-forwarding/2.png" alt="" /></p>
+
+<h4>3. Forward L1 to R1</h4>
+
+<p>Say R0 can access R1 through ssh command: ssh secret-user@10.0.0.101, then the following command</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>will forward L0&rsquo;s port 2222 to the R1&rsquo;s port 22, and even make L0 listening within the lan. So from L1, we can access to R1 by this command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 secret-user@192.168.0.100</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/images/ssh-port-forwarding/3.png" alt="" />
+Awesome!</p>
+
+<h2>Forwarding remote host (-R)</h2>
+
+<h3>Usage</h3>
+
+<blockquote><p>Specifies that the given port on the remote (server) host is to be forwarded to the given host and port on the local side.</p></blockquote>
+
+
+<p>So the SSH -R can be useful when accessing a box hidden behind a NAT.</p>
+
+<p>增强远端主机的访问本地主机（局域网）的能力。</p>
+
+<h3>Example</h3>
+
+<h4>1. Forward R0 to L0</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/images/ssh-port-forwarding/4.png" alt="" /></p>
+
+<h4>1. Forward R0 to L1</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/images/ssh-port-forwarding/5.png" alt="" /></p>
+
+<h2>Dynamic forwarding (-D)</h2>
+
+<h3>Usage</h3>
+
+<blockquote><p>Specifies a local “dynamic” application-level port forwarding...and ssh will act as a SOCKS server.</p></blockquote>
+
+
+<h3>Example</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then, there exists a SOCKS server on L0, and we can use it as a proxy server.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost:1080 https://www.google.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="/images/ssh-port-forwarding/7.png" alt="" /></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">杨阳</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-08-17T09:29:47+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:29 am</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/" data-via="Valkyryy" data-counturl="http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/07/29/shadowsocks-tutorial/" title="Previous Post: Shadowsocks Tutorial">&laquo; Shadowsocks Tutorial</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/29/shadowsocks-tutorial/">Shadowsocks Tutorial</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/17/session-with-express-and-nginx/">Session With Express and Nginx</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/16/installing-memcache-with-php/">Installing Memcache With PHP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/15/blog-writing-with-octopress-3/">Blog Writing With Octopress 3</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/Pro-YY">@Pro-YY</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'Pro-YY',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - 杨阳 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yangyangsblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/';
+        var disqus_url = 'http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
