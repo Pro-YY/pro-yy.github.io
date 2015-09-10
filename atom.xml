@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2015-09-10T21:25:15+08:00</updated>
+  <updated>2015-09-10T22:14:44+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -98,7 +98,9 @@ Since it&rsquo;s an event emitter, it can emit &lsquo;income&rsquo; event, and c
 <h2>Prototype-Based Inheritance in ES5</h2>
 
 <p>In fact, javascript object is prototype-based, there isn&rsquo;t <em>class</em> at all, everything in javascript is object.
-There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new object), rather than <em>Class Inheritance</em> (create new subclass that inherits the parent class). The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate traditional textbook or java-like class or inheritance.</p>
+There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new object), rather than <em>Class Inheritance</em> (create new subclass that inherits the parent class).
+To implement Inheritance is to build/extend the appropriate prototype chain.
+The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate traditional textbook or java-like class or inheritance.</p>
 
 <figure class='code'><figcaption><span>phone-es5.js </span></figcaption>
 <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -125,8 +127,8 @@ There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new 
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
 </span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span>
-</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">contstructor</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span> <span class="c1">// or: Phone.prototype = Object.create(EventEmitter.prototype);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
 </span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 </span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
 </span><span class='line'><span class="p">};</span>
@@ -238,27 +240,27 @@ There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new 
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span>
 </span><span class='line'>
 </span><span class='line'><span class="kr">class</span> <span class="nx">Phone</span> <span class="kr">extends</span> <span class="nx">EventEmitter</span> <span class="p">{</span>
 </span><span class='line'>  <span class="nx">constructor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kr">super</span><span class="p">();</span>
-</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>
+</span><span class='line'>    <span class="kr">super</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span>
 </span><span class='line'>  <span class="p">}</span>
 </span><span class='line'>  <span class="nx">powerOn</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">)</span>
 </span><span class='line'>  <span class="p">}</span>
 </span><span class='line'>  <span class="nx">income</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">)</span>
 </span><span class='line'>  <span class="p">}</span>
 </span><span class='line'>  <span class="kr">static</span> <span class="nx">vendor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="err">`</span><span class="p">[</span><span class="nx">Phone</span> <span class="kr">static</span> <span class="nx">method</span><span class="p">]</span> <span class="nx">vendor</span><span class="o">:</span> <span class="nx">$</span><span class="p">{</span><span class="nx">name</span><span class="p">}</span><span class="err">`</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="err">`</span><span class="p">[</span><span class="nx">Phone</span> <span class="kr">static</span> <span class="nx">method</span><span class="p">]</span> <span class="nx">vendor</span><span class="o">:</span> <span class="nx">$</span><span class="p">{</span><span class="nx">name</span><span class="p">}</span><span class="err">`</span><span class="p">)</span>
 </span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
