@@ -52,7 +52,9 @@ incomming call from: +4478123456
 
 ## Prototype-Based Inheritance in ES5
 In fact, javascript object is prototype-based, there isn't *class* at all, everything in javascript is object.
-There's only *Object Extension* (extends an exists object to a new object), rather than *Class Inheritance* (create new subclass that inherits the parent class). The prototype-based inheritance is more flexible, and it's easy to emulate traditional textbook or java-like class or inheritance.
+There's only *Object Extension* (extends an exists object to a new object), rather than *Class Inheritance* (create new subclass that inherits the parent class).
+To implement Inheritance is to build/extend the appropriate prototype chain.
+The prototype-based inheritance is more flexible, and it's easy to emulate traditional textbook or java-like class or inheritance.
 
 {% codeblock lang:javascript phone-es5.js %}
 var EventEmitter = require('events').EventEmitter;
@@ -61,8 +63,8 @@ var Phone = function(name) {
   this.setMaxListeners(20);   // customize with parent's method
   this.name = name;           // self field
 };
-Phone.prototype = new EventEmitter();
-Phone.prototype.contstructor = Phone;
+Phone.prototype = new EventEmitter(); // or: Phone.prototype = Object.create(EventEmitter.prototype);
+Phone.prototype.constructor = Phone;
 Phone.prototype.powerOn = function() {
   console.log('[Phone instance method] ' + this.name + ' is powered on.');
 };
@@ -124,27 +126,27 @@ JavaScript classes provide a much simpler and clearer syntax to create objects a
 With *class* syntax, class/inheritance can be implemented in a more straightforward manner.
 
 {% codeblock lang:javascript phone-es6.js %}
-'use strict';
-var EventEmitter = require('events').EventEmitter;
+'use strict'
+var EventEmitter = require('events').EventEmitter
 
 class Phone extends EventEmitter {
   constructor(name) {
-    super();
-    this.setMaxListeners(20);
-    this.name = name;
+    super()
+    this.setMaxListeners(20)
+    this.name = name
   }
   powerOn() {
-    console.log('[Phone instance method] ' + this.name + ' is powered on.');
+    console.log('[Phone instance method] ' + this.name + ' is powered on.')
   }
   income(number) {
-    this.emit('income', number);
+    this.emit('income', number)
   }
   static vendor(name) {
-    console.log(`[Phone static method] vendor: ${name}`);
+    console.log(`[Phone static method] vendor: ${name}`)
   }
-};
+}
 
-module.exports = Phone;
+module.exports = Phone
 {% endcodeblock %}
 
 Note: 'use strict' is required, and we use the template string syntax in static method (class method).
