@@ -58,12 +58,13 @@ The prototype-based inheritance is more flexible, and it's easy to emulate tradi
 
 {% codeblock lang:javascript phone-es5.js %}
 var EventEmitter = require('events').EventEmitter;
-var Phone = function(name) {
+function Phone(name) {
   EventEmitter.call(this);    // call parent's constructor
   this.setMaxListeners(20);   // customize with parent's method
   this.name = name;           // self field
 };
-Phone.prototype = new EventEmitter(); // or: Phone.prototype = Object.create(EventEmitter.prototype);
+Phone.prototype = new EventEmitter();
+// same as: Phone.prototype = Object.create(EventEmitter.prototype);
 Phone.prototype.constructor = Phone;
 Phone.prototype.powerOn = function() {
   console.log('[Phone instance method] ' + this.name + ' is powered on.');
@@ -82,7 +83,7 @@ Node.js util module provides syntactical sugar for easily implemention of class-
 {% codeblock lang:javascript phone-util.js %}
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
-var Phone = function(name) {
+function Phone(name) {
   EventEmitter.call(this);    // call parent's constructor
   this.setMaxListeners(20);   // customize with parent's method
   this.name = name;           // self field
