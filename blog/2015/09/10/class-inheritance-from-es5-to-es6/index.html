@@ -187,13 +187,15 @@ The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
+<span class='line-number'>19</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">Phone</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
 </span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span> <span class="c1">// or: Phone.prototype = Object.create(EventEmitter.prototype);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span>
+</span><span class='line'><span class="c1">// same as: Phone.prototype = Object.create(EventEmitter.prototype);</span>
 </span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
 </span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 </span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
@@ -233,7 +235,7 @@ The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate
 <span class='line-number'>18</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
 </span><span class='line'><span class="kd">var</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;util&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">Phone</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
 </span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
