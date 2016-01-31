@@ -84,27 +84,27 @@
   </header>
 
 
-<div class="entry-content"><h1>Overview</h1>
+<div class="entry-content"><h2>Overview</h2>
 
-<h2>socks5</h2>
+<h3>socks5</h3>
 
 <p>Socket Secure (SOCKS) is an Internet protocol that routes network packets between a client and server through a proxy server. SOCKS5 additionally provides authentication so only authorized users may access a server.</p>
 
 <p>Practically, a SOCKS server proxies TCP connections to an arbitrary IP address, and provides a means for UDP packets to be forwarded.SOCKS operates at a lower level than HTTP proxying: SOCKS uses a handshake protocol to inform the proxy software about the connection that the client is trying to make, and then acts as transparently as possible. SOCKS proxies can also forward UDP traffic and work in reverse.</p>
 
-<h2>shadowsocks</h2>
+<h3>shadowsocks</h3>
 
 <p><a href="https://github.com/shadowsocks/shadowsocks">Shadowsocks</a> is a fast tunnel proxy that can help bypass firewalls.</p>
 
-<h2>test environment</h2>
+<h3>test environment</h3>
 
 <p>Remote VPS OS: Ubuntu-14.04 Server VPS on DigitalOcean</p>
 
 <p>Local Client OS: Ubuntu-14.04 Desktop</p>
 
-<h1>Installation</h1>
+<h2>Installation</h2>
 
-<h2>install package</h2>
+<h3>install package</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -112,7 +112,7 @@
 </span><span class='line'>sudo pip install shadowsocks</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>remote server</h2>
+<h3>remote server</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssserver -k PASSWORD -d start</span></code></pre></td></tr></table></div></figure>
@@ -120,7 +120,7 @@
 
 <p>This will run shadowsocks remote server listening at <strong>0.0.0.0:8388</strong></p>
 
-<h2>local server</h2>
+<h3>local server</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>sslocal -s VPS -k PASSWORD</span></code></pre></td></tr></table></div></figure>
@@ -128,15 +128,15 @@
 
 <p>This will run shadowsocks local server listening at <strong>127.0.0.1:1080</strong></p>
 
-<h1>Client Configuration</h1>
+<h2>Client Configuration</h2>
 
-<h2>Web Browser</h2>
+<h3>Web Browser</h3>
 
 <p>Thanks for proxy setting extension like <a href="http://getfoxyproxy.org/">FoxyProxy</a> in Firefox, <a href="https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif">SwitchyOmega</a> in Chrome, socks proxy tunnel can be easily configured.</p>
 
 <p>Choose <strong>socks v5</strong> protocal at localhost:1080, and get it work.</p>
 
-<h2>Curl</h2>
+<h3>Curl</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost https://www.google.com</span></code></pre></td></tr></table></div></figure>
@@ -144,7 +144,7 @@
 
 <p>Note that we specify protocal as <strong>socks5h</strong> instead of socks5, which means we use the specified SOCKS5 proxy, and let the proxy resolve the host name, otherwise it may not resolve hostname. And port 1080 is by default.</p>
 
-<h2>Nodejs Request</h2>
+<h3>Nodejs Request</h3>
 
 <p><a href="https://www.npmjs.com/package/request">request</a> utility doesn&rsquo;t support socks proxy by default, so we need <a href="https://www.npmjs.com/package/socks5-http-client">socks5-http-client</a> and <a href="https://www.npmjs.com/package/socks5-https-client">socks5-https-client</a> to create agent.</p>
 

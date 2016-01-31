@@ -85,7 +85,7 @@
   </header>
 
 
-<div class="entry-content"><h1>为什么一定要持久化存储会话信息</h1>
+<div class="entry-content"><h2>为什么一定要持久化存储会话信息</h2>
 
 <p>如果会话信息仅仅存储在内存&hellip;</p>
 
@@ -99,7 +99,7 @@
 
 <p>环境： Express 4.12.2， Nginx 1.8.0</p>
 
-<h1>Express添加Redis会话存储</h1>
+<h2>Express添加Redis会话存储</h2>
 
 <p>需要的相关库或组件：</p>
 
@@ -209,7 +209,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h1>Nginx配置支持负载均衡</h1>
+<h2>Nginx配置支持负载均衡</h2>
 
 <p>Web-Socket的连接建立需要同一个tcp连接上的多次握手支持，要求比一般的HTTP会话高一些。
 所以为实现多进程的共享会话支持，需要配置支持iphash的upstream。</p>
@@ -271,7 +271,7 @@
 </span><span class='line'>pm2 start -f --name web4 app.js -- 8004</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>参考资料</h1>
+<h2>参考资料</h2>
 
 <p><a href="http://socket.io/docs/using-multiple-nodes/">Socket.io doc: using multiple nodes</a></p>
 </div>

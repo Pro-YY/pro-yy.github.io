@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2016-01-31T16:57:27+08:00</updated>
+  <updated>2016-01-31T17:03:06+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -578,27 +578,27 @@ Awesome!</p>
     <link href="http://this.pro-yy.com/blog/2015/07/29/shadowsocks-tutorial/"/>
     <updated>2015-07-29T19:37:13+08:00</updated>
     <id>http://this.pro-yy.com/blog/2015/07/29/shadowsocks-tutorial</id>
-    <content type="html"><![CDATA[<h1>Overview</h1>
+    <content type="html"><![CDATA[<h2>Overview</h2>
 
-<h2>socks5</h2>
+<h3>socks5</h3>
 
 <p>Socket Secure (SOCKS) is an Internet protocol that routes network packets between a client and server through a proxy server. SOCKS5 additionally provides authentication so only authorized users may access a server.</p>
 
 <p>Practically, a SOCKS server proxies TCP connections to an arbitrary IP address, and provides a means for UDP packets to be forwarded.SOCKS operates at a lower level than HTTP proxying: SOCKS uses a handshake protocol to inform the proxy software about the connection that the client is trying to make, and then acts as transparently as possible. SOCKS proxies can also forward UDP traffic and work in reverse.</p>
 
-<h2>shadowsocks</h2>
+<h3>shadowsocks</h3>
 
 <p><a href="https://github.com/shadowsocks/shadowsocks">Shadowsocks</a> is a fast tunnel proxy that can help bypass firewalls.</p>
 
-<h2>test environment</h2>
+<h3>test environment</h3>
 
 <p>Remote VPS OS: Ubuntu-14.04 Server VPS on DigitalOcean</p>
 
 <p>Local Client OS: Ubuntu-14.04 Desktop</p>
 
-<h1>Installation</h1>
+<h2>Installation</h2>
 
-<h2>install package</h2>
+<h3>install package</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -606,7 +606,7 @@ Awesome!</p>
 </span><span class='line'>sudo pip install shadowsocks</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>remote server</h2>
+<h3>remote server</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssserver -k PASSWORD -d start</span></code></pre></td></tr></table></div></figure>
@@ -614,7 +614,7 @@ Awesome!</p>
 
 <p>This will run shadowsocks remote server listening at <strong>0.0.0.0:8388</strong></p>
 
-<h2>local server</h2>
+<h3>local server</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>sslocal -s VPS -k PASSWORD</span></code></pre></td></tr></table></div></figure>
@@ -622,15 +622,15 @@ Awesome!</p>
 
 <p>This will run shadowsocks local server listening at <strong>127.0.0.1:1080</strong></p>
 
-<h1>Client Configuration</h1>
+<h2>Client Configuration</h2>
 
-<h2>Web Browser</h2>
+<h3>Web Browser</h3>
 
 <p>Thanks for proxy setting extension like <a href="http://getfoxyproxy.org/">FoxyProxy</a> in Firefox, <a href="https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif">SwitchyOmega</a> in Chrome, socks proxy tunnel can be easily configured.</p>
 
 <p>Choose <strong>socks v5</strong> protocal at localhost:1080, and get it work.</p>
 
-<h2>Curl</h2>
+<h3>Curl</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost https://www.google.com</span></code></pre></td></tr></table></div></figure>
@@ -638,7 +638,7 @@ Awesome!</p>
 
 <p>Note that we specify protocal as <strong>socks5h</strong> instead of socks5, which means we use the specified SOCKS5 proxy, and let the proxy resolve the host name, otherwise it may not resolve hostname. And port 1080 is by default.</p>
 
-<h2>Nodejs Request</h2>
+<h3>Nodejs Request</h3>
 
 <p><a href="https://www.npmjs.com/package/request">request</a> utility doesn&rsquo;t support socks proxy by default, so we need <a href="https://www.npmjs.com/package/socks5-http-client">socks5-http-client</a> and <a href="https://www.npmjs.com/package/socks5-https-client">socks5-https-client</a> to create agent.</p>
 
@@ -711,7 +711,7 @@ Awesome!</p>
     <link href="http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx/"/>
     <updated>2015-07-17T17:12:56+08:00</updated>
     <id>http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx</id>
-    <content type="html"><![CDATA[<h1>为什么一定要持久化存储会话信息</h1>
+    <content type="html"><![CDATA[<h2>为什么一定要持久化存储会话信息</h2>
 
 <p>如果会话信息仅仅存储在内存&hellip;</p>
 
@@ -725,7 +725,7 @@ Awesome!</p>
 
 <p>环境： Express 4.12.2， Nginx 1.8.0</p>
 
-<h1>Express添加Redis会话存储</h1>
+<h2>Express添加Redis会话存储</h2>
 
 <p>需要的相关库或组件：</p>
 
@@ -835,7 +835,7 @@ Awesome!</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h1>Nginx配置支持负载均衡</h1>
+<h2>Nginx配置支持负载均衡</h2>
 
 <p>Web-Socket的连接建立需要同一个tcp连接上的多次握手支持，要求比一般的HTTP会话高一些。
 所以为实现多进程的共享会话支持，需要配置支持iphash的upstream。</p>
@@ -897,7 +897,7 @@ Awesome!</p>
 </span><span class='line'>pm2 start -f --name web4 app.js -- 8004</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>参考资料</h1>
+<h2>参考资料</h2>
 
 <p><a href="http://socket.io/docs/using-multiple-nodes/">Socket.io doc: using multiple nodes</a></p>
 ]]></content>
@@ -908,33 +908,33 @@ Awesome!</p>
     <link href="http://this.pro-yy.com/blog/2015/07/16/installing-memcache-with-php/"/>
     <updated>2015-07-16T20:34:27+08:00</updated>
     <id>http://this.pro-yy.com/blog/2015/07/16/installing-memcache-with-php</id>
-    <content type="html"><![CDATA[<h1>install memcached</h1>
+    <content type="html"><![CDATA[<h2>install memcached</h2>
 
 <p>  OS: Ubuntu-14.04 server</p>
 
 <p>  PHP: 5.6.8 source build</p>
 
-<h2>install memcached with apt-get</h2>
+<h3>install memcached with apt-get</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install memcached</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>verification</h2>
+<h3>verification</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>echo "stats settings" | nc localhost 11211</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>install memcache php extension</h1>
+<h2>install memcache php extension</h2>
 
-<h2>download source from pecl</h2>
+<h3>download source from pecl</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>wget http://pecl.php.net/get/memcache-2.2.7.tgz</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>install with pecl</h2>
+<h3>install with pecl</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>/path/to/php/bin/pecl install /path/to/memcache-2.2.7.tgz</span></code></pre></td></tr></table></div></figure>
@@ -942,11 +942,11 @@ Awesome!</p>
 
 <p>There exsists the <em>lib/php/extensions/no-debug-non-zts-XXXXXXX/memcache.so</em></p>
 
-<h2>update the <em>php.ini</em></h2>
+<h3>update the <em>php.ini</em></h3>
 
 <p>add &ldquo;extension=memcache.so&rdquo; to php.ini</p>
 
-<h2>reload php-fpm server</h2>
+<h3>reload php-fpm server</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>kill -USR2 $(cat /path/to/php/var/run/php-fpm.pid) # no need sudo</span></code></pre></td></tr></table></div></figure>
@@ -961,7 +961,7 @@ Awesome!</p>
     <link href="http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3/"/>
     <updated>2015-07-15T20:38:31+08:00</updated>
     <id>http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3</id>
-    <content type="html"><![CDATA[<h1>initialize workspace</h1>
+    <content type="html"><![CDATA[<h2>initialize workspace</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -973,7 +973,7 @@ Awesome!</p>
 </span><span class='line'>  bundle install</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>write post</h1>
+<h2>write post</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -981,7 +981,7 @@ Awesome!</p>
 </span><span class='line'>  vim source/_posts/2015-07-15-blog-writing-with-octopress-3.markdown</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>preview</h1>
+<h2>preview</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -991,13 +991,13 @@ Awesome!</p>
 
 <p>preview at <a href="http://localhost:4000">http://localhost:4000</a></p>
 
-<h1>deploy</h1>
+<h2>deploy</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>  rake deploy</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>commit source</h1>
+<h2>commit source</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1005,7 +1005,7 @@ Awesome!</p>
 </span><span class='line'>  git push</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>update octopress</h1>
+<h2>update octopress</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
