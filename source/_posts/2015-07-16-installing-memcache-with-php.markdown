@@ -6,41 +6,41 @@ comments: true
 categories:
 ---
 
-# install memcached
+## install memcached
 
   OS: Ubuntu-14.04 server
 
   PHP: 5.6.8 source build
 
-## install memcached with apt-get
+### install memcached with apt-get
 ```
 sudo apt-get install memcached
 ```
 
-## verification
+### verification
 ```
 echo "stats settings" | nc localhost 11211
 ```
 
-# install memcache php extension
+## install memcache php extension
 
-## download source from pecl
+### download source from pecl
 
 ```
 wget http://pecl.php.net/get/memcache-2.2.7.tgz
 ```
 
-## install with pecl
+### install with pecl
 ```
 /path/to/php/bin/pecl install /path/to/memcache-2.2.7.tgz
 ```
 
 There exsists the *lib/php/extensions/no-debug-non-zts-XXXXXXX/memcache.so*
 
-## update the *php.ini*
+### update the *php.ini*
 add "extension=memcache.so" to php.ini
 
-## reload php-fpm server
+### reload php-fpm server
 ```
 kill -USR2 $(cat /path/to/php/var/run/php-fpm.pid) # no need sudo
 ```

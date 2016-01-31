@@ -6,7 +6,7 @@ comments: true
 categories:
 ---
 
-# initialize workspace
+## initialize workspace
 
 ```
   git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source
@@ -14,14 +14,14 @@ categories:
   git clone git@github.com:Pro-YY/pro-yy.github.io.git -b master _deploy
   bundle install
 ```
-# write post
+## write post
 
 ```
   rake new_post["Blog Writing with Octopress 3"]
   vim source/_posts/2015-07-15-blog-writing-with-octopress-3.markdown
 ```
 
-# preview
+## preview
 
 ```
   rake generate
@@ -30,20 +30,20 @@ categories:
 
 preview at http://localhost:4000
 
-# deploy
+## deploy
 
 ```
   rake deploy
 ```
 
-# commit source
+## commit source
 
 ```
   git commit -asm 'new post'
   git push
 ```
 
-# update octopress
+## update octopress
 ```
   git remote add octopress git://github.com/imathis/octopress.git
   git pull octopress master

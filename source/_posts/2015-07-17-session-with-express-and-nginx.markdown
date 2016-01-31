@@ -6,7 +6,7 @@ comments: true
 categories:
 ---
 
-# 为什么一定要持久化存储会话信息
+## 为什么一定要持久化存储会话信息
 
 如果会话信息仅仅存储在内存...
 
@@ -17,7 +17,7 @@ categories:
 
 环境： Express 4.12.2， Nginx 1.8.0
 
-# Express添加Redis会话存储
+## Express添加Redis会话存储
 
 需要的相关库或组件：
 
@@ -78,7 +78,7 @@ sio.use(function(socket, next){
 {% endcodeblock %}
 
 
-# Nginx配置支持负载均衡
+## Nginx配置支持负载均衡
 
 Web-Socket的连接建立需要同一个tcp连接上的多次握手支持，要求比一般的HTTP会话高一些。
 所以为实现多进程的共享会话支持，需要配置支持iphash的upstream。
@@ -115,5 +115,5 @@ pm2 start -f --name web3 app.js -- 8003
 pm2 start -f --name web4 app.js -- 8004
 ```
 
-# 参考资料
+## 参考资料
 [Socket.io doc: using multiple nodes](http://socket.io/docs/using-multiple-nodes/)
