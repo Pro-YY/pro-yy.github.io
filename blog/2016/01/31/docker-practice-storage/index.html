@@ -1,0 +1,408 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Docker Practice: Storage - YangYang's Notes</title>
+  <meta name="author" content="杨阳">
+
+  
+  <meta name="description" content="Docker基础 简介 Docker作为著名的开源容器引擎，在业界有着广泛的使用。
+由于使用了现代Linux内核高级特性(如cgroup，namespace)，它可以更高校更安全地使用宿主机的计算、存储、网络等资源。
+容器技术作为轻量级的虚拟化技术， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="YangYang's Notes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">YangYang's Notes</a></h1>
+  
+    <h2>practice more, share more</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="this.pro-yy.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Docker Practice: Storage</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-31T14:03:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>2:03 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Docker基础</h2>
+
+<h3>简介</h3>
+
+<p><a href="https://www.docker.com/what-docker">Docker</a>作为著名的开源容器引擎，在业界有着广泛的使用。
+由于使用了现代Linux内核高级特性(如cgroup，namespace)，它可以更高校更安全地使用宿主机的计算、存储、网络等资源。
+容器技术作为轻量级的虚拟化技术，相比传统的基于Hypervisor和VM的虚拟化更适合大规模的横向扩展。
+容器技术独立与上层应用语言和底层操作系统，将代码和其所依赖的环境整体打包，实现了“构建一次，处处运行”的目标。
+在构建应用方面，容器技术可以大大提升运维工作的效率，缩短应用开发上线发布周期，甚至重新定义了软件开发、测试、交付和部署的流程。</p>
+
+<p>本文作为Docker的初级实践总结，描述了Docker的<strong>安装及基本命令</strong>，并以<strong>Redis</strong>和<strong>PostgreSQL</strong>的服务部署为例，记录Docker官方镜像服务部署的过程。</p>
+
+<h3>安装</h3>
+
+<p>在ubuntu 14.04下安装参考<a href="https://docs.docker.com/engine/installation/ubuntulinux/">安装文档</a>，过程如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+</span><span class='line'>sudo su -c "echo 'deb https://apt.dockerproject.org/repo ubuntu-trusty main' &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get install docker-engine</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>免sudo执行docker</h4>
+
+<p>将指定用户加入docker组，并重新登录</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo usermod -aG docker $USER</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>更改docker默认数据目录</h4>
+
+<p>更改<em>/etc/default/docker</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>DOCKER_OPTS="-g /data/var/lib/docker"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重启服务</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo service docker restart</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>基本操作</h3>
+
+<p>常用启动容器实例模式</p>
+
+<p>后台执行容器 <strong>-d</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -d ubuntu /bin/bash -c "vmstat 5"  # docker logs -f 查看输出</span></code></pre></td></tr></table></div></figure>
+
+
+<p>执行完命令即时删除 <strong>&ndash;rm</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --rm ubuntu /bin/bash -c "uname -a"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>交互式 <strong>-it</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -it ubuntu /bin/bash   # 操作完成后容器停止，可以start，再attach
+</span><span class='line'>docker exec -it CONTAINER_NAME /bin/bash # shell到后台运行的容器</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看子命令使用: docker help inspect</p>
+
+<p>列出所有运行的容器列表: docker ps</p>
+
+<p>删除所有容器: docker rm $(docker ps -aq)</p>
+
+<p>搜索镜像: <a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
+
+<h2>Redis服务部署</h2>
+
+<p><a href="http://redis.io/">Redis</a>是开源的内存数据结构存储引擎，常用来实现缓存服务、键值存储引擎以及Pub/Sub引擎等。用Docker部署Redis服务非常便捷。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-redis -p 127.0.0.1:49514:6379 -d redis</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Docker会做以下工作:</p>
+
+<p>在本地需找官方<a href="https://hub.docker.com/_/redis/">redis官方镜像</a>，如果没有则下载；用官方镜像启动名为<em>myapp-redis</em>的容器实例；将实例开放的默认redis服务6379端口映射到宿主系统的本地49514端口。</p>
+
+<p>查看redis服务的日志</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker logs -f myapp-redis</span></code></pre></td></tr></table></div></figure>
+
+
+<p>验证:通过宿主系统的redis客户端访问</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>redis-cli -p 49514</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>PostgreSQL服务部署</h2>
+
+<p><a href="http://www.postgresql.org/">PostgreSQL</a>是开源的关系型数据库。用Docker部署PostgreSQL服务同样直观便捷。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
+</span><span class='line'>-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
+</span><span class='line'>-e POSTGRES_PASSWORD=postgres                               \
+</span><span class='line'>-d postgres</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样的，docker会下载<a href="https://hub.docker.com/_/postgres/">postgresql官方镜像</a>，启动myapp-postgres实例，并将服务端口映射到宿主机的49513端口。</p>
+
+<p>注意这里用到<strong>-v</strong>参数，可以为容器的volume(数据卷)指定映射目录。
+官方的postgresql镜像将<em>/var/lib/postgresql/data/</em>目录作为volume处理，使得单独存储数据变得简单。
+可以简单的理解为将<em>$(pwd)/pg-data</em>作为设备挂载到容器的<em>/var/lib/postgresql/data/</em>目录。这样，备份和迁移都很方便，不依赖容器。</p>
+
+<p><strong>-e</strong>参数为创建容器时指定的环境变量，这里将postrgres超级用户的密码设置为postgres。</p>
+
+<p>然后便可以在宿主机通过posgresql的客户端(如psql、createuser、createdb)访问服务了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># 以postgres超级用户测试数据连接
+</span><span class='line'>PGPASSWORD=postgres psql -h localhost -p 49513 -U postgres -e
+</span><span class='line'># 创建用户myapp，并设置访问权限(可以创建角色和数据库)及密码
+</span><span class='line'>PGPASSWORD=postgres createuser -h localhost -p 49513 -U postgres -rdeP myapp
+</span><span class='line'># 以新用户创建同名数据库
+</span><span class='line'>PGPASSWORD=myapp-pass createdb -h localhost -p 49513 -U myapp -e myapp</span></code></pre></td></tr></table></div></figure>
+
+
+<p>官方镜像还支持若干个环境变量，如初始superuser的用户名及密码等等。以下一个命令即可完成以上流程。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
+</span><span class='line'>-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
+</span><span class='line'>-e POSTGRES_PASSWORD=myapp-pass -e POSTGRES_USER=myapp      \
+</span><span class='line'>-d postgres</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>总结</h2>
+
+<p>通过以上两个例子，创建了两个容器实例，分别是redis服务和有分离数据卷的postgresql服务。
+通过应用Docker容器技术，最核心的是简化测试交付部署流程，并使这些流程更容易地实现自动化。
+从而使开发者更多地专注于业务逻辑，加速其价值提升。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">杨阳</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-01-31T14:03:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>2:03 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/" data-via="Valkyryy" data-counturl="http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/" title="Previous Post: Class Inheritance from ES5 to ES6">&laquo; Class Inheritance from ES5 to ES6</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/29/shadowsocks-tutorial/">Shadowsocks Tutorial</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/17/session-with-express-and-nginx/">Session With Express and Nginx</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/Pro-YY">@Pro-YY</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'Pro-YY',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - 杨阳 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yangyangsblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/';
+        var disqus_url = 'http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
