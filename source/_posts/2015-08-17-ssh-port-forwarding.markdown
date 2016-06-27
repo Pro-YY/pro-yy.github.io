@@ -10,7 +10,7 @@ categories:
 
 利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。
 
-##Environment
+## Environment
 
 - **L0**: localhost behind *NAT*, with lan ip **192.168.0.100**
 - **L1**: host within same lan of L0, with lan ip **192.168.0.101**
@@ -24,7 +24,7 @@ ssh user@r0.example.com
 {% endcodeblock %}
 
 ![](/images/ssh-port-forwarding/0.png)
-##Forwarding local host (-L)
+## Forwarding local host (-L)
 
 ### Usage
 
@@ -37,7 +37,7 @@ SSH -L is good for exposing a remote port locally.
 增强本地主机的访问远程主机（局域网）能力。
 
 ### Example
-####1. Forward L0 to R0
+#### 1. Forward L0 to R0
 
 The mongod has the http web service, listening only on localhost:28017. With the following command:
 
@@ -48,7 +48,7 @@ ssh -NL 28018:localhost:28017 user@r0.example.com
 Then the remote service on 28017 will be accessed on L0's 28018 port from L0.
 ![](/images/ssh-port-forwarding/1.png)
 
-####2. Forward L0 to R1
+#### 2. Forward L0 to R1
 
 Suggest that there's an API server on R1, listening only on port 10030 of lan (10.0.0.0/24).
 Because R0 can access R1's private address of the same lan, so the following command will make R1's service of port 10030 accessible from L0's local port 10031.
@@ -61,7 +61,7 @@ Note, use R1's private ip *10.0.0.101* instead of *localhost*.
 
 ![](/images/ssh-port-forwarding/2.png)
 
-####3. Forward L1 to R1
+#### 3. Forward L1 to R1
 
 Say R0 can access R1 through ssh command: ssh secret-user@10.0.0.101, then the following command
 
@@ -78,7 +78,7 @@ ssh -p 2222 secret-user@192.168.0.100
 ![](/images/ssh-port-forwarding/3.png)
 Awesome!
 
-##Forwarding remote host (-R)
+## Forwarding remote host (-R)
 ### Usage
 {% blockquote %}
 Specifies that the given port on the remote (server) host is to be forwarded to the given host and port on the local side.
@@ -89,7 +89,7 @@ So the SSH -R can be useful when accessing a box hidden behind a NAT.
 增强远端主机的访问本地主机（局域网）的能力。
 
 ### Example
-####1. Forward R0 to L0
+#### 1. Forward R0 to L0
 
 {% codeblock %}
 ssh -NR 2222:localhost:22 user@r0.example.com
@@ -97,7 +97,7 @@ ssh -NR 2222:localhost:22 user@r0.example.com
 
 ![](/images/ssh-port-forwarding/4.png)
 
-####1. Forward R0 to L1
+#### 2. Forward R0 to L1
 
 {% codeblock %}
 ssh -NR 2222:192.168.0.101:22 user@r0.example.com
@@ -105,7 +105,15 @@ ssh -NR 2222:192.168.0.101:22 user@r0.example.com
 
 ![](/images/ssh-port-forwarding/5.png)
 
-##Dynamic forwarding (-D)
+#### 3. Forward R1 to L1
+Unlike local forwarding, remote forwarding from R1 to L1 is not permitted by default due to security policy,
+unless we change *sshd_config* file on **R0**, with the additional config line:
+```
+GatewayPorts = yes
+```
+then the ultimate tunnel created, with which we can access L1's port on machine R1. Cool?
+
+## Dynamic forwarding (-D)
 ### Usage
 {% blockquote %}
 Specifies a local “dynamic” application-level port forwarding...and ssh will act as a SOCKS server.
