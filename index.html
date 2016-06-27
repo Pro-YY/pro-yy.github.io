@@ -653,13 +653,24 @@ Awesome!</p>
 
 <p><img src="/images/ssh-port-forwarding/4.png" alt="" /></p>
 
-<h4>1. Forward R0 to L1</h4>
+<h4>2. Forward R0 to L1</h4>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
 
 
 <p><img src="/images/ssh-port-forwarding/5.png" alt="" /></p>
+
+<h4>3. Forward R1 to L1</h4>
+
+<p>Unlike local forwarding, remote forwarding from R1 to L1 is not permitted by default due to security policy,
+unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the additional config line:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>GatewayPorts = yes</span></code></pre></td></tr></table></div></figure>
+
+
+<p>then the ultimate tunnel created, with which we can access L1&rsquo;s port on machine R1. Cool?</p>
 
 <h2>Dynamic forwarding (-D)</h2>
 
