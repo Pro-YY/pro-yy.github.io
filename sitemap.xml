@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://this.pro-yy.com/blog/2016/06/28/nodejs-circular-dependencies/</loc>
+<lastmod>2016-06-28T13:23:14+08:00</lastmod>
+</url>
+<url>
 <loc>http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/</loc>
 <lastmod>2016-01-31T14:03:30+08:00</lastmod>
 </url>
