@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>[Solved] Ffmpeg Build: Libmp3lame Not Found - YangYang's Notes</title>
+  <title>[Solved] FFMPEG: Libmp3lame Not Found - YangYang's Notes</title>
   <meta name="author" content="杨阳">
 
   
@@ -68,7 +68,7 @@
   
   <header>
     
-      <h1 class="entry-title">[Solved] Ffmpeg Build: Libmp3lame Not Found</h1>
+      <h1 class="entry-title">[Solved] FFMPEG: Libmp3lame Not Found</h1>
     
     
       <p class="meta">
@@ -100,9 +100,9 @@
 
 <p>Done!</p>
 
-<p>So how?</p>
+<h4>HOW</h4>
 
-<p>Check the <em>ffbuild/config.log</em> file, which show it&rsquo;s due to dynamic linking of libmp3lame, which requires the math library.</p>
+<p>Check <em>ffbuild/config.log</em>, which shows dynamic linking error of libmp3lame, which requires the math lib.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -113,6 +113,8 @@
 </span><span class='line'>layer3.c:(.text+0x2250): undefined reference to `sin'
 </span><span class='line'>layer3.c:(.text+0x226a): undefined reference to `cos'       </span></code></pre></td></tr></table></div></figure>
 
+
+<p>Yeah!</p>
 </div>
 
 
@@ -167,7 +169,7 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] Ffmpeg Build: Libmp3lame Not Found</a>
+        <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] FFMPEG: Libmp3lame Not Found</a>
       </li>
     
       <li class="post">

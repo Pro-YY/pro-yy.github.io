@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2017-10-24T15:32:53+08:00</updated>
+  <updated>2017-10-24T15:39:22+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[[Solved] Ffmpeg Build: Libmp3lame Not Found]]></title>
+    <title type="html"><![CDATA[[Solved] FFMPEG: Libmp3lame Not Found]]></title>
     <link href="http://this.pro-yy.com/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/"/>
     <updated>2017-10-24T15:09:04+08:00</updated>
     <id>http://this.pro-yy.com/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found</id>
@@ -34,9 +34,9 @@
 
 <p>Done!</p>
 
-<p>So how?</p>
+<h4>HOW</h4>
 
-<p>Check the <em>ffbuild/config.log</em> file, which show it&rsquo;s due to dynamic linking of libmp3lame, which requires the math library.</p>
+<p>Check <em>ffbuild/config.log</em>, which shows dynamic linking error of libmp3lame, which requires the math lib.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -47,6 +47,8 @@
 </span><span class='line'>layer3.c:(.text+0x2250): undefined reference to `sin'
 </span><span class='line'>layer3.c:(.text+0x226a): undefined reference to `cos'       </span></code></pre></td></tr></table></div></figure>
 
+
+<p>Yeah!</p>
 ]]></content>
   </entry>
   
