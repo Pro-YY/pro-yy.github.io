@@ -12,6 +12,7 @@ categories:
   git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source
   cd pro-yy.github.io/
   git clone git@github.com:Pro-YY/pro-yy.github.io.git -b master _deploy
+  apt install ruby-bundler ruby-dev
   bundle install
 ```
 ## write post
