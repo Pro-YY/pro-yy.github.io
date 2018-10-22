@@ -4,7 +4,7 @@
   <title><![CDATA[YangYang's Notes]]></title>
   <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
   <link href="http://this.pro-yy.com/"/>
-  <updated>2018-10-22T11:02:43+08:00</updated>
+  <updated>2018-10-22T11:06:41+08:00</updated>
   <id>http://this.pro-yy.com/</id>
   <author>
     <name><![CDATA[杨阳]]></name>
@@ -18,7 +18,7 @@
     <link href="http://this.pro-yy.com/blog/2018/10/22/compile-kernel-with-kali-linux/"/>
     <updated>2018-10-22T09:57:10+08:00</updated>
     <id>http://this.pro-yy.com/blog/2018/10/22/compile-kernel-with-kali-linux</id>
-    <content type="html"><![CDATA[<p>With the instructions in <a href="https://docs.kali.org/development/recompiling-the-kali-linux-kernel">Recompiling the Kali Linux Kernel</a>, we can recompiling the whole linux kernel of our kali linux.</p>
+    <content type="html"><![CDATA[<p>With the instructions in <a href="https://docs.kali.org/development/recompiling-the-kali-linux-kernel">Recompiling the Kali Linux Kernel</a>, we can recompile the whole linux kernel of our kali linux.</p>
 
 <h2>Install Dependencies</h2>
 
