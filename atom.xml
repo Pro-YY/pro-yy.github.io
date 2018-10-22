@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[YangYang's Notes]]></title>
-  <link href="http://this.pro-yy.com/atom.xml" rel="self"/>
-  <link href="http://this.pro-yy.com/"/>
-  <updated>2018-10-22T16:48:32+08:00</updated>
-  <id>http://this.pro-yy.com/</id>
+  <title><![CDATA[Cloud Tech Notes by YangYang]]></title>
+  <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
+  <link href="https://www.yangyang.cloud/"/>
+  <updated>2018-10-22T16:57:14+08:00</updated>
+  <id>https://www.yangyang.cloud/</id>
   <author>
-    <name><![CDATA[杨阳]]></name>
+    <name><![CDATA[YangYang(杨阳)]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Compile Kernel With Kali Linux]]></title>
-    <link href="http://this.pro-yy.com/blog/2018/10/22/compile-kernel-with-kali-linux/"/>
+    <link href="https://www.yangyang.cloud/blog/2018/10/22/compile-kernel-with-kali-linux/"/>
     <updated>2018-10-22T09:57:10+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2018/10/22/compile-kernel-with-kali-linux</id>
+    <id>https://www.yangyang.cloud/blog/2018/10/22/compile-kernel-with-kali-linux</id>
     <content type="html"><![CDATA[<p>With the instructions in <a href="https://docs.kali.org/development/recompiling-the-kali-linux-kernel">Recompiling the Kali Linux Kernel</a>, we can recompile the whole linux kernel of our kali linux.</p>
 
 <h2>Install Dependencies</h2>
@@ -128,9 +128,9 @@ Removing kernel can also be done with dpkg.</p>
   
   <entry>
     <title type="html"><![CDATA[[Solved] FFMPEG: Libmp3lame Not Found]]></title>
-    <link href="http://this.pro-yy.com/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/"/>
+    <link href="https://www.yangyang.cloud/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/"/>
     <updated>2017-10-24T15:09:04+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found</id>
+    <id>https://www.yangyang.cloud/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found</id>
     <content type="html"><![CDATA[<h3>ERROR: libmp3lame >= 3.98.3 not found</h3>
 
 <p>This configure error occurs when building ffmpeg from with mp3 library (libmp3lame) enabled.</p>
@@ -167,9 +167,9 @@ Removing kernel can also be done with dpkg.</p>
   
   <entry>
     <title type="html"><![CDATA[Nodejs Circular Dependencies]]></title>
-    <link href="http://this.pro-yy.com/blog/2016/06/28/nodejs-circular-dependencies/"/>
+    <link href="https://www.yangyang.cloud/blog/2016/06/28/nodejs-circular-dependencies/"/>
     <updated>2016-06-28T13:23:14+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2016/06/28/nodejs-circular-dependencies</id>
+    <id>https://www.yangyang.cloud/blog/2016/06/28/nodejs-circular-dependencies</id>
     <content type="html"><![CDATA[<h2>模块循环依赖问题背景</h2>
 
 <p>在Node.js中，模块间的循环依赖(Circular Dependencies)引用如果处理不好，往往会导致很难调试的问题。</p>
@@ -607,9 +607,9 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
   
   <entry>
     <title type="html"><![CDATA[Docker Practice: Storage]]></title>
-    <link href="http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage/"/>
+    <link href="https://www.yangyang.cloud/blog/2016/01/31/docker-practice-storage/"/>
     <updated>2016-01-31T14:03:30+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2016/01/31/docker-practice-storage</id>
+    <id>https://www.yangyang.cloud/blog/2016/01/31/docker-practice-storage</id>
     <content type="html"><![CDATA[<h2>Docker基础</h2>
 
 <h3>简介</h3>
@@ -774,9 +774,9 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
   
   <entry>
     <title type="html"><![CDATA[Class Inheritance From ES5 to ES6]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/09/10/class-inheritance-from-es5-to-es6/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/09/10/class-inheritance-from-es5-to-es6/"/>
     <updated>2015-09-10T19:29:24+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/09/10/class-inheritance-from-es5-to-es6</id>
+    <id>https://www.yangyang.cloud/blog/2015/09/10/class-inheritance-from-es5-to-es6</id>
     <content type="html"><![CDATA[<h2>Test Case</h2>
 
 <p>For test-driven development, the test case always comes first. The <strong>Phone</strong> inherits the Node.js <strong>EventEmitter</strong>: a phone <strong>is a</strong> customized event emitter, only augmented with its own properties and methods.</p>
@@ -1034,9 +1034,9 @@ And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em
   
   <entry>
     <title type="html"><![CDATA[SSH Port Forwarding]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/08/17/ssh-port-forwarding/"/>
     <updated>2015-08-17T09:29:47+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/08/17/ssh-port-forwarding</id>
+    <id>https://www.yangyang.cloud/blog/2015/08/17/ssh-port-forwarding</id>
     <content type="html"><![CDATA[<h2>Overview</h2>
 
 <p>利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。</p>
@@ -1057,7 +1057,7 @@ And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssh user@r0.example.com</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/0.png" alt="" /></p>
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/0.png" alt="" /></p>
 
 <h2>Forwarding local host (-L)</h2>
 
@@ -1081,7 +1081,7 @@ And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em
 
 
 <p>Then the remote service on 28017 will be accessed on L0&rsquo;s 28018 port from L0.
-<img src="http://this.pro-yy.com/images/ssh-port-forwarding/1.png" alt="" /></p>
+<img src="https://www.yangyang.cloud/images/ssh-port-forwarding/1.png" alt="" /></p>
 
 <h4>2. Forward L0 to R1</h4>
 
@@ -1094,7 +1094,7 @@ Because R0 can access R1&rsquo;s private address of the same lan, so the followi
 
 <p>Note, use R1&rsquo;s private ip <em>10.0.0.101</em> instead of <em>localhost</em>.</p>
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/2.png" alt="" /></p>
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/2.png" alt="" /></p>
 
 <h4>3. Forward L1 to R1</h4>
 
@@ -1110,7 +1110,7 @@ Because R0 can access R1&rsquo;s private address of the same lan, so the followi
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 secret-user@192.168.0.100</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/3.png" alt="" />
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/3.png" alt="" />
 Awesome!</p>
 
 <h2>Forwarding remote host (-R)</h2>
@@ -1132,7 +1132,7 @@ Awesome!</p>
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/4.png" alt="" /></p>
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/4.png" alt="" /></p>
 
 <h4>2. Forward R0 to L1</h4>
 
@@ -1140,7 +1140,7 @@ Awesome!</p>
 </pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/5.png" alt="" /></p>
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/5.png" alt="" /></p>
 
 <h4>3. Forward R1 to L1</h4>
 
@@ -1172,15 +1172,15 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
 </pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost:1080 https://www.google.com</span></code></pre></td></tr></table></div></figure>
 
 
-<p><img src="http://this.pro-yy.com/images/ssh-port-forwarding/7.png" alt="" /></p>
+<p><img src="https://www.yangyang.cloud/images/ssh-port-forwarding/7.png" alt="" /></p>
 ]]></content>
   </entry>
   
   <entry>
     <title type="html"><![CDATA[Shadowsocks Tutorial]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/07/29/shadowsocks-tutorial/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/07/29/shadowsocks-tutorial/"/>
     <updated>2015-07-29T19:37:13+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/07/29/shadowsocks-tutorial</id>
+    <id>https://www.yangyang.cloud/blog/2015/07/29/shadowsocks-tutorial</id>
     <content type="html"><![CDATA[<h2>Overview</h2>
 
 <h3>socks5</h3>
@@ -1311,9 +1311,9 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
   
   <entry>
     <title type="html"><![CDATA[Session With Express and Nginx]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/"/>
     <updated>2015-07-17T17:12:56+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/07/17/session-with-express-and-nginx</id>
+    <id>https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx</id>
     <content type="html"><![CDATA[<h2>为什么一定要持久化存储会话信息</h2>
 
 <p>如果会话信息仅仅存储在内存&hellip;</p>
@@ -1508,9 +1508,9 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
   
   <entry>
     <title type="html"><![CDATA[Installing Memcache With PHP]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/07/16/installing-memcache-with-php/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/07/16/installing-memcache-with-php/"/>
     <updated>2015-07-16T20:34:27+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/07/16/installing-memcache-with-php</id>
+    <id>https://www.yangyang.cloud/blog/2015/07/16/installing-memcache-with-php</id>
     <content type="html"><![CDATA[<h2>install memcached</h2>
 
 <p>  OS: Ubuntu-14.04 server</p>
@@ -1561,9 +1561,9 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
   
   <entry>
     <title type="html"><![CDATA[Blog Writing With Octopress 3]]></title>
-    <link href="http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3/"/>
+    <link href="https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/"/>
     <updated>2015-07-15T20:38:31+08:00</updated>
-    <id>http://this.pro-yy.com/blog/2015/07/15/blog-writing-with-octopress-3</id>
+    <id>https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3</id>
     <content type="html"><![CDATA[<h2>initialize workspace</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>

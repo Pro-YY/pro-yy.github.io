@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://this.pro-yy.com/sitemap.xml 
+Sitemap: https://www.yangyang.cloud/sitemap.xml 
