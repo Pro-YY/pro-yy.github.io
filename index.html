@@ -9,7 +9,7 @@
   <meta name="author" content="杨阳">
 
   
-  <meta name="description" content="ERROR: libmp3lame >= 3.98.3 not found This configure error occurs when building ffmpeg from with mp3 library (libmp3lame) enabled. solution: add -lm &hellip;">
+  <meta name="description" content="With the instructions in Recompiling the Kali Linux Kernel, we can recompiling the whole linux kernel of our kali linux. Install Dependencies We need &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +65,139 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/10/22/compile-kernel-with-kali-linux/">Compile Kernel With Kali Linux</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-10-22T09:57:10+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2018</span></span> <span class='time'>9:57 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>With the instructions in <a href="https://docs.kali.org/development/recompiling-the-kali-linux-kernel">Recompiling the Kali Linux Kernel</a>, we can recompiling the whole linux kernel of our kali linux.</p>
+
+<h2>Install Dependencies</h2>
+
+<p>We need to start by installing several build dependency packages, some of them may have already been in installed.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt install build-essential libncurses5-dev fakeroot bison libssl-dev libelf-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download the Kernel Source</h2>
+
+<p>For my system, the kernel version is 4.18, which will be used in following example. Of course, the workflow of other version is just the same.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt install linux-source-4.18
+</span><span class='line'>[...]
+</span><span class='line'>ls /usr/src
+</span><span class='line'>linux-config-4.18 linux-patch-4.18-rt.patch.xz linux-source-4.18.tar.xz</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then we get the compressed archive of the kernel sources, and we&rsquo;ll extract these files in our working directory, (no special permission need for compiling the kernel). In our example, we use <em>/opt/kernel</em>, and the <em>~/kernel</em> is also an appropriate place.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /opt/kernel; cd /opt/kernel
+</span><span class='line'>tar -xaf /usr/src/linux-source-4.18.tar.xz</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Optionally, we may also apply the <em>rt</em> patch, which is for real-time os features.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd /opt/kernel/linux-source-4.18
+</span><span class='line'>xzcat /usr/src/linux-patch-4.18-rt.patch.xz | patch -p1</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Configure the Kernel</h2>
+
+<p>When building a more recent version of kernel (possibley with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd /opt/kernel/linux-source-4.18
+</span><span class='line'>cp /boot/config-4.18.0-kali2-amd64 .config</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you need to make some changes or dicide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
+Note: we can tweak a lot in this phase.</p>
+
+<h2>Write Some Code</h2>
+
+<p>Add one line of code for test(fun), in file <em>init/main.c</em>, <strong>start_kernel</strong> function</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pr_notice("Brookes's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
+</span><span class='line'>pr_notice("%s", linux_banner);</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Build the Kernel</h2>
+
+<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate debian source package, or invoke <strong>make clean</strong>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>time make -j4 bindeb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After a while, we get folowing package in the parent directory</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>linux-headers-4.18.10-custom_4.18.10-20181021_amd64.deb   # headers
+</span><span class='line'>linux-image-4.18.10-custom_4.18.10-20181021_amd64.deb     # kernel image
+</span><span class='line'>linux-image-4.18.10-custom-dbg_4.18.10-20181021_amd64.deb # kernel image with debugging symbols
+</span><span class='line'>linux-libc-dev_4.18.10-20181021_amd64.deb                 # headers of user-space library</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Trouble Shooting</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>No rule to make target 'debian/certs/test-signing-certs.pem', needed by 'certs/x509_certificate_list'. Stop</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Solve: comment/delete the corresponding config line.</p>
+
+<h2>Install/Remove the Kernel</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dpkg -i ../linux-image-4.18.10-custom_4.18.10-custom_4.18.10-20181021_amd64.deb
+</span><span class='line'>reboot</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Once booted, we can use <strong>dmesg</strong> to verify our printk message.
+Removing kernel can also be done with dpkg.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dpkg -r linux-image-4.18.10-custom</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1759,6 +1892,10 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/10/22/compile-kernel-with-kali-linux/">Compile Kernel With Kali Linux</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] FFMPEG: Libmp3lame Not Found</a>
       </li>
     
@@ -1772,10 +1909,6 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
     
       <li class="post">
         <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
       </li>
     
   </ul>
