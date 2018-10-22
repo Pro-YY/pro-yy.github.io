@@ -6,7 +6,7 @@ comments: true
 categories: 
 ---
 
-With the instructions in [Recompiling the Kali Linux Kernel](https://docs.kali.org/development/recompiling-the-kali-linux-kernel), we can recompiling the whole linux kernel of our kali linux.
+With the instructions in [Recompiling the Kali Linux Kernel](https://docs.kali.org/development/recompiling-the-kali-linux-kernel), we can recompile the whole linux kernel of our kali linux.
 
 
 ## Install Dependencies
