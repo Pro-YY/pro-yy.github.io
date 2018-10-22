@@ -5,8 +5,8 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Nodejs Circular Dependencies - YangYang's Notes</title>
-  <meta name="author" content="YangYang(杨阳)">
+  <title>Nodejs Circular Dependencies - Brooke's Notes</title>
+  <meta name="author" content="BrookeYang(杨阳)">
 
   
   <meta name="description" content="模块循环依赖问题背景 在Node.js中，模块间的循环依赖(Circular Dependencies)引用如果处理不好，往往会导致很难调试的问题。 常见的问题情形是：新加入一个模块后，先前的某个模块就在开始载入时成为部分加载状态，导致依赖该它的其他模块找不到本应导出的变量或方法。 &hellip;">
@@ -21,7 +21,7 @@
   <link rel="canonical" href="https://www.yangyang.cloud/blog/2016/06/28/nodejs-circular-dependencies/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="YangYang's Notes" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -52,7 +52,7 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">YangYang's Notes</a></h1>
+  <h1><a href="/">Brooke's Notes</a></h1>
   
     <h2>experience, record, and share.</h2>
   
@@ -543,7 +543,7 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">YangYang(杨阳)</span></span>
+<span class="byline author vcard">Posted by <span class="fn">BrookeYang(杨阳)</span></span>
 
       
 
@@ -621,7 +621,7 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2018 - YangYang(杨阳) -
+  Copyright &copy; 2018 - BrookeYang(杨阳) -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

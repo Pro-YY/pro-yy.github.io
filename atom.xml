@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[YangYang's Notes]]></title>
+  <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-10-22T17:20:34+08:00</updated>
+  <updated>2018-10-22T17:34:51+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
-    <name><![CDATA[YangYang(杨阳)]]></name>
+    <name><![CDATA[BrookeYang(杨阳)]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
