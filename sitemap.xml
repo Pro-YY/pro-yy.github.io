@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>https://www.yangyang.cloud/blog/2018/10/23/building-linux-loadable-kernel-module/</loc>
+<lastmod>2018-10-23T10:30:28+08:00</lastmod>
+</url>
+<url>
 <loc>https://www.yangyang.cloud/blog/2018/10/22/compile-kernel-with-kali-linux/</loc>
 <lastmod>2018-10-22T09:57:10+08:00</lastmod>
 </url>
