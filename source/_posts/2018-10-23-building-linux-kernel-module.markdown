@@ -24,7 +24,7 @@ So, the easiest way to start kernel programming is to write a module - a piece o
 
 LKM is run in kernel space, which is quite different.
 
-First off, The code is always asynchronous, which means it doesn't execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like `main()` and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space `api`. 
+First off, the code is always asynchronous, which means it doesn't execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like `main()` and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space `api`. 
 
 Secondly, there's only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.
 
