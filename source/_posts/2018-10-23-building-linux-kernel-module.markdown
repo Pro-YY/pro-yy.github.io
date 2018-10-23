@@ -42,9 +42,7 @@ apt install linux-headers-4.18.0.kali2-amd64
 
 *hello.c*
 ```c
-#include <linux/init.h>
 #include <linux/module.h>
-#include <linux/kernel.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Brooke Yang");
