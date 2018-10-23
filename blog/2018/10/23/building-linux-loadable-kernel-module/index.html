@@ -5,12 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Building-linux-loadable-kernel-module - Brooke's Notes</title>
+  <title>Building Linux Loadable Kernel Module - Brooke's Notes</title>
   <meta name="author" content="BrookeYang(杨阳)">
 
   
   <meta name="description" content="Overview What is Linux loadable kernel module(LKM)? How is the LKM different from an user-space application? Prepare Header 1
 2
+3
 apt search linux- &hellip;">
   
 
@@ -86,7 +87,7 @@ apt search linux- &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Building-linux-loadable-kernel-module</h1>
+      <h1 class="entry-title">Building Linux Loadable Kernel Module</h1>
     
     
       <p class="meta">
@@ -113,17 +114,20 @@ apt search linux- &hellip;">
 
 <h2>Prepare Header</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>apt search linux-headers-$(uname -r)
-</span><span class='line'>apt install linux-headers-4.18.0.kali2-amd64</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>apt search linux-headers-<span class="k">$(</span>uname -r<span class="k">)</span>
+</span><span class='line'><span class="c"># get our kernel release: 4.18.0.kali2-amd64</span>
+</span><span class='line'>apt install linux-headers-4.18.0.kali2-amd64
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Simple Module Code</h2>
 
 <p><em>hello.c</em></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -147,59 +151,62 @@ apt search linux- &hellip;">
 <span class='line-number'>22</span>
 <span class='line-number'>23</span>
 <span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#include &lt;linux/init.h&gt;
-</span><span class='line'>#include &lt;linux/module.h&gt;
-</span><span class='line'>#include &lt;linux/kernel.h&gt;
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;linux/init.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;linux/module.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;linux/kernel.h&gt;</span>
 </span><span class='line'>
-</span><span class='line'>MODULE_LICENSE("GPL");
-</span><span class='line'>MODULE_AUTHOR("Brooke Yang");
-</span><span class='line'>MODULE_DESCRIPTION("A simple Linux moadable mernel module");
-</span><span class='line'>MODULE_VERSION("0.1");
+</span><span class='line'><span class="n">MODULE_LICENSE</span><span class="p">(</span><span class="s">&quot;GPL&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">MODULE_AUTHOR</span><span class="p">(</span><span class="s">&quot;Brooke Yang&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">MODULE_DESCRIPTION</span><span class="p">(</span><span class="s">&quot;A simple Linux moadable mernel module&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="n">MODULE_VERSION</span><span class="p">(</span><span class="s">&quot;0.1&quot;</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>static char *name = "world";
-</span><span class='line'>module_param(name, charp, S_IRUGO);
-</span><span class='line'>MODULE_PARM_DESC(name, "The name to display");
+</span><span class='line'><span class="k">static</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;world&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="n">module_param</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">charp</span><span class="p">,</span> <span class="n">S_IRUGO</span><span class="p">);</span>
+</span><span class='line'><span class="n">MODULE_PARM_DESC</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;The name to display&quot;</span><span class="p">);</span>
 </span><span class='line'>
-</span><span class='line'>static int __init hello_init(void) {
-</span><span class='line'>  pr_info("HELLO: Hello, %s!\n", name);
-</span><span class='line'>  return 0;
-</span><span class='line'>}
+</span><span class='line'><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">hello_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">pr_info</span><span class="p">(</span><span class="s">&quot;HELLO: Hello, %s!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>static void __exit hello_exit(void) {
-</span><span class='line'>  pr_info("HELLO: Bye-bye, %s!\n", name);
-</span><span class='line'>}
+</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">hello_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">pr_info</span><span class="p">(</span><span class="s">&quot;HELLO: Bye-bye, %s!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
 </span><span class='line'>
-</span><span class='line'>module_init(hello_init);
-</span><span class='line'>module_exit(hello_exit);</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="n">module_init</span><span class="p">(</span><span class="n">hello_init</span><span class="p">);</span>
+</span><span class='line'><span class="n">module_exit</span><span class="p">(</span><span class="n">hello_exit</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p><strong>pr_info</strong> is a more convenient way of debugging, comparing to the old-style <strong>printk</strong>.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>printk(KERN_INFO ...);  </span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="p">...);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p><em>Makefile</em></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>obj-m+=hello.o
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">obj-m</span><span class="o">+=</span>hello.o
 </span><span class='line'>
-</span><span class='line'>all:
-</span><span class='line'>  make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
-</span><span class='line'>clean:
-</span><span class='line'>  make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) clean</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'><span class="nf">all</span><span class="o">:</span>
+</span><span class='line'>  make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build/ <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> modules
+</span><span class='line'><span class="nf">clean</span><span class="o">:</span>
+</span><span class='line'>  make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build/ <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> clean
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Build &amp;&amp; Install</h2>
 
 <p>Now we can <code>make</code> our <strong>heloo</strong> module and then a <em>hello.ko</em> emerged successfully.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -218,30 +225,31 @@ apt search linux- &hellip;">
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>root@kali:/opt/kernel-modules/hello# make 
-</span><span class='line'>make -C /lib/modules/4.18.0-kali2-amd64/build/ M=/opt/kernel-modules/hello modules
-</span><span class='line'>make[1]: Entering directory '/usr/src/linux-headers-4.18.0-kali2-amd64'
-</span><span class='line'>  CC [M]  /opt/kernel-modules/hello/hello.o
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># make </span>
+</span><span class='line'><span class="err">make</span> <span class="err">-C</span> <span class="err">/lib/modules/4.18.0-kali2-amd64/build/</span> <span class="nv">M</span><span class="o">=</span>/opt/kernel-modules/hello modules
+</span><span class='line'><span class="nf">make[1]</span><span class="o">:</span> <span class="n">Entering</span> <span class="n">directory</span> &#39;/<span class="n">usr</span>/<span class="n">src</span>/<span class="n">linux</span>-<span class="n">headers</span>-4.18.0-<span class="n">kali</span>2-<span class="n">amd</span>64&#39;
+</span><span class='line'>  CC <span class="o">[</span>M<span class="o">]</span>  /opt/kernel-modules/hello/hello.o
 </span><span class='line'>  Building modules, stage 2.
-</span><span class='line'>  MODPOST 1 modules
+</span><span class='line'>  MODPOST <span class="m">1</span> modules
 </span><span class='line'>  CC      /opt/kernel-modules/hello/hello.mod.o
-</span><span class='line'>  LD [M]  /opt/kernel-modules/hello/hello.ko
-</span><span class='line'>make[1]: Leaving directory '/usr/src/linux-headers-4.18.0-kali2-amd64'
-</span><span class='line'>root@kali:/opt/kernel-modules/hello# ls -l
-</span><span class='line'>total 556
-</span><span class='line'>-rw-r--r-- 1 root root    566 Oct 23 09:41 hello.c
-</span><span class='line'>-rw-r--r-- 1 root root 272720 Oct 23 09:41 hello.ko
-</span><span class='line'>-rw-r--r-- 1 root root    872 Oct 23 09:41 hello.mod.c
-</span><span class='line'>-rw-r--r-- 1 root root 136376 Oct 23 09:41 hello.mod.o
-</span><span class='line'>-rw-r--r-- 1 root root 137864 Oct 23 09:41 hello.o
-</span><span class='line'>-rw-r--r-- 1 root root    154 Oct 23 09:38 Makefile
-</span><span class='line'>-rw-r--r-- 1 root root     42 Oct 23 09:41 modules.order
-</span><span class='line'>-rw-r--r-- 1 root root      0 Oct 23 09:41 Module.symvers</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>  LD <span class="o">[</span>M<span class="o">]</span>  /opt/kernel-modules/hello/hello.ko
+</span><span class='line'><span class="nf">make[1]</span><span class="o">:</span> <span class="n">Leaving</span> <span class="n">directory</span> &#39;/<span class="n">usr</span>/<span class="n">src</span>/<span class="n">linux</span>-<span class="n">headers</span>-4.18.0-<span class="n">kali</span>2-<span class="n">amd</span>64&#39;
+</span><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># ls -l</span>
+</span><span class='line'><span class="err">total</span> <span class="err">556</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root    566 Oct 23 09</span><span class="o">:</span>41 <span class="n">hello</span>.<span class="n">c</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root 272720 Oct 23 09</span><span class="o">:</span>41 <span class="n">hello</span>.<span class="n">ko</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root    872 Oct 23 09</span><span class="o">:</span>41 <span class="n">hello</span>.<span class="n">mod</span>.<span class="n">c</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root 136376 Oct 23 09</span><span class="o">:</span>41 <span class="n">hello</span>.<span class="n">mod</span>.<span class="n">o</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root 137864 Oct 23 09</span><span class="o">:</span>41 <span class="n">hello</span>.<span class="n">o</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root    154 Oct 23 09</span><span class="o">:</span>38 <span class="n">Makefile</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root     42 Oct 23 09</span><span class="o">:</span>41 <span class="n">modules</span>.<span class="n">order</span>
+</span><span class='line'><span class="nf">-rw-r--r-- 1 root root      0 Oct 23 09</span><span class="o">:</span>41 <span class="n">Module</span>.<span class="n">symvers</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>display module info</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -253,42 +261,45 @@ apt search linux- &hellip;">
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>root@kali:/opt/kernel-modules/hello# modinfo hello.ko
-</span><span class='line'>filename:       /opt/kernel-modules/hello/hello.ko
-</span><span class='line'>version:        0.1
-</span><span class='line'>description:    A simple Linux moadable mernel module
-</span><span class='line'>author:         Brooke Yang
-</span><span class='line'>license:        GPL
-</span><span class='line'>srcversion:     440743A20C6C4688E185D30
-</span><span class='line'>depends:        
-</span><span class='line'>retpoline:      Y
-</span><span class='line'>name:           hello
-</span><span class='line'>vermagic:       4.18.0-kali2-amd64 SMP mod_unload modversions 
-</span><span class='line'>parm:           name:The name to display (charp)</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># modinfo hello.ko</span>
+</span><span class='line'><span class="nf">filename</span><span class="o">:</span>       /<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span>/<span class="n">hello</span>.<span class="n">ko</span>
+</span><span class='line'><span class="nf">version</span><span class="o">:</span>        0.1
+</span><span class='line'><span class="nf">description</span><span class="o">:</span>    <span class="n">A</span> <span class="n">simple</span> <span class="n">Linux</span> <span class="n">moadable</span> <span class="n">mernel</span> <span class="n">module</span>
+</span><span class='line'><span class="nf">author</span><span class="o">:</span>         <span class="n">Brooke</span> <span class="n">Yang</span>
+</span><span class='line'><span class="nf">license</span><span class="o">:</span>        <span class="n">GPL</span>
+</span><span class='line'><span class="nf">srcversion</span><span class="o">:</span>     440743<span class="n">A</span>20<span class="n">C</span>6<span class="n">C</span>4688<span class="n">E</span>185<span class="n">D</span>30
+</span><span class='line'><span class="nf">depends</span><span class="o">:</span>
+</span><span class='line'><span class="nf">retpoline</span><span class="o">:</span>      <span class="n">Y</span>
+</span><span class='line'><span class="nf">name</span><span class="o">:</span>           <span class="n">hello</span>
+</span><span class='line'><span class="nf">vermagic</span><span class="o">:</span>       4.18.0-<span class="n">kali</span>2-<span class="n">amd</span>64 <span class="n">SMP</span> <span class="n">mod_unload</span> <span class="n">modversions</span>
+</span><span class='line'><span class="nf">parm</span><span class="o">:</span>           <span class="n">name</span>:<span class="n">The</span> <span class="n">name</span> <span class="n">to</span> <span class="n">display</span> (<span class="n">charp</span>)
+</span></code></pre></td></tr></table></div></figure>
 
 
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>root@kali:/opt/kernel-modules/hello# insmod hello.ko
-</span><span class='line'>root@kali:/opt/kernel-modules/hello# rmmod hello
-</span><span class='line'>root@kali:/opt/kernel-modules/hello# insmod hello.ko name=Brooke
-</span><span class='line'>root@kali:/opt/kernel-modules/hello# rmmod hello</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># insmod hello.ko</span>
+</span><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># rmmod hello</span>
+</span><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># insmod hello.ko name=Brooke</span>
+</span><span class='line'><span class="nf">root@kali</span><span class="o">:</span>/<span class="n">opt</span>/<span class="n">kernel</span>-<span class="n">modules</span>/<span class="n">hello</span><span class="c"># rmmod hello</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>we can watch the log by <code>tail -f</code> the <em>/var/log/kern.log</em> or just <code>dmesg</code></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Oct 23 09:51:37 kali kernel: [ 2651.831228] HELLO: Hello, world!
-</span><span class='line'>Oct 23 09:51:44 kali kernel: [ 2658.680087] HELLO: Bye-bye, world!
-</span><span class='line'>Oct 23 09:51:57 kali kernel: [ 2672.409216] HELLO: Hello, Brooke!
-</span><span class='line'>Oct 23 09:52:02 kali kernel: [ 2677.482181] HELLO: Bye-bye, Brooke!</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nf">Oct 23 09</span><span class="o">:</span>51:37 <span class="n">kali</span> <span class="n">kernel</span>: [ 2651.831228] <span class="n">HELLO</span>: <span class="n">Hello</span><span class="p">,</span> <span class="n">world</span>!
+</span><span class='line'><span class="nf">Oct 23 09</span><span class="o">:</span>51:44 <span class="n">kali</span> <span class="n">kernel</span>: [ 2658.680087] <span class="n">HELLO</span>: <span class="n">Bye</span>-<span class="n">bye</span><span class="p">,</span> <span class="n">world</span>!
+</span><span class='line'><span class="nf">Oct 23 09</span><span class="o">:</span>51:57 <span class="n">kali</span> <span class="n">kernel</span>: [ 2672.409216] <span class="n">HELLO</span>: <span class="n">Hello</span><span class="p">,</span> <span class="n">Brooke</span>!
+</span><span class='line'><span class="nf">Oct 23 09</span><span class="o">:</span>52:02 <span class="n">kali</span> <span class="n">kernel</span>: [ 2677.482181] <span class="n">HELLO</span>: <span class="n">Bye</span>-<span class="n">bye</span><span class="p">,</span> <span class="n">Brooke</span>!
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Done!</p>
@@ -335,7 +346,7 @@ apt search linux- &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2018/10/22/compile-kernel-with-kali-linux/" title="Previous Post: compile kernel with kali linux">&laquo; compile kernel with kali linux</a>
+        <a class="basic-alignment left" href="/blog/2018/10/22/compiling-kernel-with-kali-linux/" title="Previous Post: compiling kernel with kali linux">&laquo; compiling kernel with kali linux</a>
       
       
     </p>
@@ -357,11 +368,11 @@ apt search linux- &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2018/10/23/building-linux-loadable-kernel-module/">Building-linux-loadable-kernel-module</a>
+        <a href="/blog/2018/10/23/building-linux-loadable-kernel-module/">Building Linux Loadable Kernel Module</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2018/10/22/compile-kernel-with-kali-linux/">Compile Kernel With Kali Linux</a>
+        <a href="/blog/2018/10/22/compiling-kernel-with-kali-linux/">Compiling Kernel With Kali Linux</a>
       </li>
     
       <li class="post">
