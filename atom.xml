@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-10-23T12:18:27+08:00</updated>
+  <updated>2018-10-23T13:46:03+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -42,7 +42,7 @@ LKM can be inserted to the monolithic kernel at any time &ndash; usually at boot
 
 <p>LKM is run in kernel space, which is quite different.</p>
 
-<p>First off, The code is always asynchronous, which means it doesn&rsquo;t execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
+<p>First off, the code is always asynchronous, which means it doesn&rsquo;t execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
 
 <p>Secondly, there&rsquo;s only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.</p>
 
