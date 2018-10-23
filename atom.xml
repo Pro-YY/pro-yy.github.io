@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-10-23T11:04:48+08:00</updated>
+  <updated>2018-10-23T11:07:03+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -222,10 +222,10 @@
 
 <h2>References</h2>
 
-<p><a href="http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/"></a>
-<a href="https://qnaplus.com/how-to-compile-linux-kernel-module/">https://qnaplus.com/how-to-compile-linux-kernel-module/</a>
-<a href="https://qnaplus.com/linux-kernel-programming-basics-create-loadable-kernel-module/">https://qnaplus.com/linux-kernel-programming-basics-create-loadable-kernel-module/</a>
-<a href="https://www.linuxvoice.com/be-a-kernel-hacker/">https://www.linuxvoice.com/be-a-kernel-hacker/</a></p>
+<p><a href="http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/">writing a linux kernel module part 1 introduction</a>
+<a href="https://qnaplus.com/how-to-compile-linux-kernel-module/">how to compile linux kernel modul</a>
+<a href="https://qnaplus.com/linux-kernel-programming-basics-create-loadable-kernel-module/">linux kernel programming basics create loadable kernel module</a>
+<a href="https://www.linuxvoice.com/be-a-kernel-hacker/">be a kernel hacker</a></p>
 ]]></content>
   </entry>
   
