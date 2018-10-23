@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "compile kernel with kali linux"
+title: "compiling kernel with kali linux"
 date: 2018-10-22 09:57:10 +0800
 comments: true
 categories: 
