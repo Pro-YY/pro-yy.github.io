@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-10-23T10:56:46+08:00</updated>
+  <updated>2018-10-23T11:00:02+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -14,10 +14,10 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Building Linux Loadable Kernel Module]]></title>
-    <link href="https://www.yangyang.cloud/blog/2018/10/23/building-linux-loadable-kernel-module/"/>
+    <title type="html"><![CDATA[Building Linux Kernel Module]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module/"/>
     <updated>2018-10-23T10:30:28+08:00</updated>
-    <id>https://www.yangyang.cloud/blog/2018/10/23/building-linux-loadable-kernel-module</id>
+    <id>https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module</id>
     <content type="html"><![CDATA[<h2>Overview</h2>
 
 <p>What is Linux loadable kernel module(LKM)?</p>
