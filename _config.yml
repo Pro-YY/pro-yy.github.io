@@ -54,8 +54,8 @@ titlecase: true       # Converts page and post titles to titlecase
 #default_asides: [asides/recent_posts.html, asides/github.html, asides/delicious.html, asides/pinboard.html, asides/googleplus.html]
 default_asides: [
 	asides/recent_posts.html,
-	asides/google_ads_0.html,
 	asides/google_ads_1.html,
+	asides/google_ads_2.html,
 ]
 
 # Each layout uses the default asides, but they can have their own asides instead. Simply uncomment the lines below
