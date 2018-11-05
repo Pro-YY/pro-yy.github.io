@@ -189,7 +189,7 @@ And since our test machine has 2 cpu-threads, our command is like:</p>
 <p>Now, let&rsquo;s feed our output data to plot program with <a href="https://matplotlib.org/3.0.0/">matplotlib</a>, and finally get the whole picture below:
 <img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
 
-<p>The plot is fairly clear. Rust beats Go even in such an I/O sensitive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
+<p>The plot is fairly clear. Rust beats Go even in such an I/O intensive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
 As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may get down.</p>
 
 <h2>Conclusions</h2>
