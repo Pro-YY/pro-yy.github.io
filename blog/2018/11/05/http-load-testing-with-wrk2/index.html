@@ -9,8 +9,8 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overviews Latency
-Throughput What&rsquo;s wrk2 SUT simple implementation All servers are simple http-server, which simply response Hello, world!\n to &hellip;">
+  <meta name="description" content="Overviews XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Let&rsquo;s start to recap some of the key concept related:
+- Connection The number of simultaneous tcp &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -116,11 +116,32 @@ Throughput What&rsquo;s wrk2 SUT simple implementation All servers are simple ht
 
 <div class="entry-content"><h2>Overviews</h2>
 
+<p>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</p>
+
+<p>Let&rsquo;s start to recap some of the key concept related:
+- Connection</p>
+
+<pre><code>The number of simultaneous tcp connections, sometimes refered as `Number of Users` in other benchmark tools.
+</code></pre>
+
 <ul>
-<li>Latency</li>
-<li>Throughput</li>
+<li><p>Latency</p>
+
+<p>  For HTTP request, it is the same as the <code>Response Time</code>, measured by <code>ms</code>. And it is tested from clients.
+  The latency <code>percentil</code>, like 50/90/99/99.9 percentile is the most common QoS metric.</p></li>
+<li><p>Throughput</p>
+
+<p>  For HTTP request, it&rsquo;s also refered as <code>Request per Second</code> or <code>RPS</code> for short. Usually, when the number of connections increase, the system throughput goes down.</p></li>
 </ul>
 
+
+<p>So, what does <code>web server load testing</code> really mean?</p>
+
+<p>In brief, it&rsquo;s to determine the maximum throughput (the highest RPS), under specified number of connection, with all response time satisfying the latancy target.</p>
+
+<p>Thus, we can remark a server capability like this:</p>
+
+<blockquote><p>&ldquo;Our server instance can achieve 20K RPS under 5K simultaneous connections with latency p99 at less than 200ms.&rdquo;</p></blockquote>
 
 <h2>What&rsquo;s wrk2</h2>
 
@@ -138,13 +159,31 @@ Throughput What&rsquo;s wrk2 SUT simple implementation All servers are simple ht
 
 <h2>Testing Workflow</h2>
 
-<p><img src="/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
+<p>Our latency target: <strong>The 99 percentile is less than 200ms.</strong> It&rsquo;s a fairly high performance in real world.</p>
+
+<p>Due to the calibration time of wrk2, all the test last for 30~60 seconds.
+And since our test machine has 2 cpu-threads, our command is like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./wrk -t2 -c100 -d60 -R 18000 -L http://$HOST:$PORT/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We iterate to execute the command, and increase the reqeust rate (-R argument) by 500 on each turn until we find the maximum RPS. The whole workflow can be explained as:
+<img src="/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
+
+<p>Then we go on test for a larger number of connections, until the latancy target is no longer satified or socket connection errors occur. And move to next server.</p>
 
 <h2>Results Analysis</h2>
 
-<p><img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
+<p>Now, let&rsquo;s feed our output data to plot program with <a href="https://matplotlib.org/3.0.0/">matplotlib</a>, and finally get the whole picture below:
+<img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
+
+<p>The plot is fairly clear. Rust beats Go even in such an I/O sensitive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
+As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may got down.</p>
 
 <h2>Conclusions</h2>
+
+<p>In this post, we managed to benchmark the performance of our web server by using wrk2. And with finite experiment steps, we could determine the server&rsquo;s highest throughput under certain number of connections, which meets the specified latency QoS target.</p>
 
 <h2>References</h2>
 
