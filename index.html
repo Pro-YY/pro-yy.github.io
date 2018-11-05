@@ -9,7 +9,8 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overview What is Linux loadable kernel module(LKM)? A loadable kernel module (LKM) is a machanism for adding/removing code from Linux kernel at run &hellip;">
+  <meta name="description" content="Overviews Latency
+Throughput What&rsquo;s wrk2 SUT simple implementation All servers are simple http-server, which simply response Hello, world!\n to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -91,6 +92,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/11/05/http-load-testing-with-wrk2/">Http Load Testing With Wrk2</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-11-05T16:36:47+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>4:36 pm</span></time>
+        
+           | <a href="/blog/2018/11/05/http-load-testing-with-wrk2/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Overviews</h2>
+
+<ul>
+<li>Latency</li>
+<li>Throughput</li>
+</ul>
+
+
+<h2>What&rsquo;s wrk2</h2>
+
+<h2>SUT simple implementation</h2>
+
+<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.
+- Rust 1.28.0 (hyper 0.12)
+- Go 1.11.1 http module
+- Node.js 8.11.4
+- Python 3.5.2 asyncio</p>
+
+<h2>Testing Workflow</h2>
+
+<p><img src="/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
+
+<h2>Results Analysis</h2>
+
+<p><img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
+
+<h2>Conclusions</h2>
+
+<h2>References</h2>
+
+<p><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a>
+<a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a>
+<a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2035,82 +2100,6 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/07/16/installing-memcache-with-php/">Installing Memcache With PHP</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-16T20:34:27+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:34 pm</span></time>
-        
-           | <a href="/blog/2015/07/16/installing-memcache-with-php/#disqus_thread"
-             data-disqus-identifier="https://www.yangyang.cloud/blog/2015/07/16/installing-memcache-with-php/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>install memcached</h2>
-
-<p>  OS: Ubuntu-14.04 server</p>
-
-<p>  PHP: 5.6.8 source build</p>
-
-<h3>install memcached with apt-get</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install memcached</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>verification</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>echo "stats settings" | nc localhost 11211</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>install memcache php extension</h2>
-
-<h3>download source from pecl</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>wget http://pecl.php.net/get/memcache-2.2.7.tgz</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>install with pecl</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/path/to/php/bin/pecl install /path/to/memcache-2.2.7.tgz</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There exsists the <em>lib/php/extensions/no-debug-non-zts-XXXXXXX/memcache.so</em></p>
-
-<h3>update the <em>php.ini</em></h3>
-
-<p>add &ldquo;extension=memcache.so&rdquo; to php.ini</p>
-
-<h3>reload php-fpm server</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>kill -USR2 $(cat /path/to/php/var/run/php-fpm.pid) # no need sudo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Check the php.info page, make sure that memcache section exsists</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -2124,6 +2113,10 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/11/05/http-load-testing-with-wrk2/">Http Load Testing With Wrk2</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2018/10/23/building-linux-kernel-module/">Building Linux Kernel Module</a>
@@ -2159,10 +2152,6 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
     
       <li class="post">
         <a href="/blog/2015/07/17/session-with-express-and-nginx/">Session With Express and Nginx</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/07/16/installing-memcache-with-php/">Installing Memcache With PHP</a>
       </li>
     
   </ul>

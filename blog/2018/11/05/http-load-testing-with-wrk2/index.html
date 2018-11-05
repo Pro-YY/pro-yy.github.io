@@ -5,15 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Blog Writing With Octopress 3 - Brooke's Notes</title>
+  <title>Http Load Testing With Wrk2 - Brooke's Notes</title>
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="initialize workspace 1
-2
-3
-4
-5 git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source cd pro-yy.github.io/ git clone git@github.com:Pro-YY/ &hellip;">
+  <meta name="description" content="Overviews Latency
+Throughput What&rsquo;s wrk2 SUT simple implementation All servers are simple http-server, which simply response Hello, world!\n to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -22,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/">
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
@@ -98,7 +95,7 @@
   
   <header>
     
-      <h1 class="entry-title">Blog Writing With Octopress 3</h1>
+      <h1 class="entry-title">Http Load Testing With Wrk2</h1>
     
     
       <p class="meta">
@@ -107,7 +104,7 @@
 
 
 
-<time class='entry-date' datetime='2015-07-15T20:38:31+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:38 pm</span></time>
+<time class='entry-date' datetime='2018-11-05T16:36:47+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>4:36 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
@@ -117,65 +114,39 @@
   </header>
 
 
-<div class="entry-content"><h2>initialize workspace</h2>
+<div class="entry-content"><h2>Overviews</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source
-</span><span class='line'>  cd pro-yy.github.io/
-</span><span class='line'>  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b master _deploy
-</span><span class='line'>  apt install ruby-bundler ruby-dev
-</span><span class='line'>  bundle install</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Latency</li>
+<li>Throughput</li>
+</ul>
 
 
-<h2>write post</h2>
+<h2>What&rsquo;s wrk2</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  rake new_post["Blog Writing with Octopress 3"]
-</span><span class='line'>  vim source/_posts/2015-07-15-blog-writing-with-octopress-3.markdown</span></code></pre></td></tr></table></div></figure>
+<h2>SUT simple implementation</h2>
 
+<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.
+- Rust 1.28.0 (hyper 0.12)
+- Go 1.11.1 http module
+- Node.js 8.11.4
+- Python 3.5.2 asyncio</p>
 
-<h2>preview</h2>
+<h2>Testing Workflow</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  rake generate
-</span><span class='line'>  rake preview</span></code></pre></td></tr></table></div></figure>
+<p><img src="/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
 
+<h2>Results Analysis</h2>
 
-<p>preview at <a href="http://localhost:4000">http://localhost:4000</a></p>
+<p><img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
 
-<h2>deploy</h2>
+<h2>Conclusions</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  rake deploy</span></code></pre></td></tr></table></div></figure>
+<h2>References</h2>
 
-
-<h2>commit source</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  git commit -asm 'new post'
-</span><span class='line'>  git push</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>update octopress</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  git remote add octopress git://github.com/imathis/octopress.git
-</span><span class='line'>  git pull octopress master
-</span><span class='line'>  bundle install
-</span><span class='line'>  rake update_source
-</span><span class='line'>  rake update_style</span></code></pre></td></tr></table></div></figure>
-
+<p><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a>
+<a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a>
+<a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></p>
 </div>
 
 
@@ -191,7 +162,7 @@
 
 
 
-<time class='entry-date' datetime='2015-07-15T20:38:31+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:38 pm</span></time>
+<time class='entry-date' datetime='2018-11-05T16:36:47+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>4:36 pm</span></time>
       
 
 
@@ -199,7 +170,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/" >Tweet</a>
   
   
   
@@ -208,8 +179,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/blog/2018/10/23/building-linux-kernel-module/" title="Previous Post: building linux kernel module">&laquo; building linux kernel module</a>
       
-        <a class="basic-alignment right" href="/blog/2015/07/16/installing-memcache-with-php/" title="Next Post: Installing Memcache with PHP">Installing Memcache with PHP &raquo;</a>
       
     </p>
   </footer>
@@ -327,8 +298,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/';
-        var disqus_url = 'https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/';
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/';
         var disqus_script = 'embed.js';
       
     (function () {

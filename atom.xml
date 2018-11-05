@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-10-28T16:28:04+08:00</updated>
+  <updated>2018-11-05T16:50:45+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -12,6 +12,47 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Http Load Testing With Wrk2]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/"/>
+    <updated>2018-11-05T16:36:47+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2</id>
+    <content type="html"><![CDATA[<h2>Overviews</h2>
+
+<ul>
+<li>Latency</li>
+<li>Throughput</li>
+</ul>
+
+
+<h2>What&rsquo;s wrk2</h2>
+
+<h2>SUT simple implementation</h2>
+
+<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.
+- Rust 1.28.0 (hyper 0.12)
+- Go 1.11.1 http module
+- Node.js 8.11.4
+- Python 3.5.2 asyncio</p>
+
+<h2>Testing Workflow</h2>
+
+<p><img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
+
+<h2>Results Analysis</h2>
+
+<p><img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
+
+<h2>Conclusions</h2>
+
+<h2>References</h2>
+
+<p><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a>
+<a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a>
+<a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Building Linux Kernel Module]]></title>
