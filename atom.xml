@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-05T18:48:49+08:00</updated>
+  <updated>2018-11-05T18:52:07+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -84,14 +84,14 @@ And since our test machine has 2 cpu-threads, our command is like:</p>
 
 
 <p>We iterate to execute the command, and increase the reqeust rate (-R argument) by 500 on each turn until we find the maximum RPS. The whole workflow can be explained as:
-<img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" />{: .center-image }</p>
+<img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
 
 <p>Then we go on test for a larger number of connections, until the latancy target is no longer satified or socket connection errors occur. And move to next server.</p>
 
 <h2>Results Analysis</h2>
 
 <p>Now, let&rsquo;s feed our output data to plot program with <a href="https://matplotlib.org/3.0.0/">matplotlib</a>, and finally get the whole picture below:
-<img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" />{: .center-image }</p>
+<img src="https://www.yangyang.cloud/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
 
 <p>The plot is fairly clear. Rust beats Go even in such an I/O intensive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
 As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may get down.</p>
