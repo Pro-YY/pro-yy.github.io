@@ -134,11 +134,11 @@ With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark
   The latency <code>percentile</code>, like p50/p90/p99, is the most common QoS metric.</p></li>
 <li><p>Throughput</p>
 
-<p>  For HTTP request, it&rsquo;s also refered as <code>requests/second</code> or <code>RPS</code> for short. Usually, when the number of connections increase, the system throughput goes down.</p></li>
+<p>  For HTTP request, it&rsquo;s also refered as <code>requests/second</code> or <code>RPS</code> for short. Usually, as the number of connections increases, the system throughput goes down.</p></li>
 </ul>
 
 
-<p>So, what does <code>web server load testing</code> really mean?</p>
+<p>So, what does <code>load testing</code> really mean?</p>
 
 <p>In brief, it&rsquo;s to determine the maximum throughput (the highest RPS), under specified number of connection, with all response time satisfying the latancy target.</p>
 
@@ -149,7 +149,7 @@ With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark
 <h2>What&rsquo;s wrk2</h2>
 
 <p><a href="https://github.com/giltene/wrk2">wrk2</a> is an HTTP benchmakring cli tool, which is considered better than <a href="https://httpd.apache.org/docs/2.4/programs/ab.html">ab</a> or <a href="https://github.com/wg/wrk">wrk</a>.
-With wrk2, we are able to generate some constant throughput load, and its latency detail is more accrate.</p>
+With wrk2, we are able to generate some constant throughput load, and its latency detail is more accrate. As a command-line tool, it&rsquo;s quite convenient and fast.</p>
 
 <ul>
 <li>-d: duration, test time. Note that it has a 10 second calibration time, so this should be specified no shorter than 20s.</li>
