@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-05T16:50:45+08:00</updated>
+  <updated>2018-11-05T17:03:14+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -30,11 +30,15 @@
 
 <h2>SUT simple implementation</h2>
 
-<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.
-- Rust 1.28.0 (hyper 0.12)
-- Go 1.11.1 http module
-- Node.js 8.11.4
-- Python 3.5.2 asyncio</p>
+<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.</p>
+
+<ul>
+<li>Rust 1.28.0 (hyper 0.12)</li>
+<li>Go 1.11.1 http module</li>
+<li>Node.js 8.11.4</li>
+<li>Python 3.5.2 asyncio</li>
+</ul>
+
 
 <h2>Testing Workflow</h2>
 
@@ -48,9 +52,12 @@
 
 <h2>References</h2>
 
-<p><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a>
-<a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a>
-<a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></p>
+<ul>
+<li><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a></li>
+<li><a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></li>
+</ul>
+
 ]]></content>
   </entry>
   
