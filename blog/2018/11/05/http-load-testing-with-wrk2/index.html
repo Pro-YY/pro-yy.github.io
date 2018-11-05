@@ -9,8 +9,8 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overviews XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX Let&rsquo;s start to recap some of the key concept related:
-- Connection The number of simultaneous tcp &hellip;">
+  <meta name="description" content="Overviews How to measure our server&rsquo;s performance?
+With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark. Let&rsquo; &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -116,22 +116,22 @@
 
 <div class="entry-content"><h2>Overviews</h2>
 
-<p>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</p>
+<p>How to measure our server&rsquo;s performance?
+With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark.</p>
 
-<p>Let&rsquo;s start to recap some of the key concept related:
-- Connection</p>
-
-<pre><code>The number of simultaneous tcp connections, sometimes refered as `Number of Users` in other benchmark tools.
-</code></pre>
+<p>Let&rsquo;s start to recap some of the key concept related:</p>
 
 <ul>
+<li><p>Connection</p>
+
+<p>  The number of simultaneous tcp connections, sometimes refered as <code>Number of Users</code> in other benchmark tools.</p></li>
 <li><p>Latency</p>
 
 <p>  For HTTP request, it is the same as the <code>Response Time</code>, measured by <code>ms</code>. And it is tested from clients.
-  The latency <code>percentil</code>, like 50/90/99/99.9 percentile is the most common QoS metric.</p></li>
+  The latency <code>percentile</code>, like p50/p90/p99, is the most common QoS metric.</p></li>
 <li><p>Throughput</p>
 
-<p>  For HTTP request, it&rsquo;s also refered as <code>Request per Second</code> or <code>RPS</code> for short. Usually, when the number of connections increase, the system throughput goes down.</p></li>
+<p>  For HTTP request, it&rsquo;s also refered as <code>requests/second</code> or <code>RPS</code> for short. Usually, when the number of connections increase, the system throughput goes down.</p></li>
 </ul>
 
 
@@ -144,6 +144,17 @@
 <blockquote><p>&ldquo;Our server instance can achieve 20K RPS under 5K simultaneous connections with latency p99 at less than 200ms.&rdquo;</p></blockquote>
 
 <h2>What&rsquo;s wrk2</h2>
+
+<p><a href="https://github.com/giltene/wrk2">wrk2</a> is an HTTP benchmakring cli tool, which is considered better than <a href="https://httpd.apache.org/docs/2.4/programs/ab.html">ab</a> or <a href="https://github.com/wg/wrk">wrk</a>.
+With wrk2, we are able to generate some constant throughput load, and its latency detail is more accrate.</p>
+
+<ul>
+<li>-d: duration, test time. Note that it has a 10 second calibration time, so this should be specified no shorter than 20s.</li>
+<li>-t: threads num. Just set it to cpu cores.</li>
+<li>-R: or &ndash;rate, expected throughput, the result RPS which is real throughput, will be lower than this value.</li>
+<li>-c: connections num. The Number of connections that will be kept open.</li>
+</ul>
+
 
 <h2>SUT simple implementation</h2>
 
@@ -179,7 +190,7 @@ And since our test machine has 2 cpu-threads, our command is like:</p>
 <img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
 
 <p>The plot is fairly clear. Rust beats Go even in such an I/O sensitive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
-As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may got down.</p>
+As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may get down.</p>
 
 <h2>Conclusions</h2>
 
