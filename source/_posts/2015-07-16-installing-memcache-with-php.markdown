@@ -3,7 +3,7 @@ layout: post
 title: "Installing Memcache with PHP"
 date: 2015-07-16 20:34:27 +0800
 comments: true
-categories:
+categories: memcache
 ---
 
 ## install memcached

@@ -3,7 +3,7 @@ layout: post
 title: "Blog Writing with Octopress 3"
 date: 2015-07-15 20:38:31 +0800
 comments: true
-categories:
+categories: blog
 ---
 
 ## initialize workspace
@@ -52,3 +52,5 @@ preview at http://localhost:4000
   rake update_source
   rake update_style
 ```
+## category list/cloud
+plugin from https://github.com/alswl/octopress-category-list

@@ -3,7 +3,7 @@ layout: post
 title: "Nodejs Circular Dependencies"
 date: 2016-06-28 13:23:14 +0800
 comments: true
-categories:
+categories: Node.js
 ---
 
 ## 模块循环依赖问题背景

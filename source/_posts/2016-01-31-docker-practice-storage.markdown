@@ -3,7 +3,7 @@ layout: post
 title: "Docker Practice: Storage"
 date: 2016-01-31 14:03:30 +0800
 comments: true
-categories:
+categories: Docker PostgreSQL
 ---
 
 ## Docker基础

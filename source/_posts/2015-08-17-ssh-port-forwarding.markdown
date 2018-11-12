@@ -3,7 +3,7 @@ layout: post
 title: "SSH port forwarding"
 date: 2015-08-17 09:29:47 +0800
 comments: true
-categories:
+categories: Network SSH
 ---
 
 ## Overview

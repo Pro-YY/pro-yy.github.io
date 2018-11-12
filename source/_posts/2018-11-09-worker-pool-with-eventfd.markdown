@@ -3,7 +3,7 @@ layout: post
 title: "worker pool with eventfd"
 date: 2018-11-09 22:41:08 +0800
 comments: true
-categories: 
+categories: Linux
 ---
 
 ## Linux Eventfd Overview
@@ -39,6 +39,7 @@ By leveraging the asynchronous notification feature from the eventfd, our inter-
 
 ## Implementation
 Our per-thread data structure is fairly simple, only contains 3 fields: `thread_id`, `rank` (thread index) and `epfd` which is the epoll file descriptor created by `main` function.
+
 ```c
 typedef struct thread_info {
     pthread_t thread_id;
@@ -86,7 +87,8 @@ And we can do anything sequential within the `do_task`, although it now does not
 
 In short: poll -> read -> close.
 
-#### Producer thread routine:
+#### Producer thread routine
+
 ```c
 static void *producer_routine(void *data) {
     struct thread_info *p = (struct thread_info *)data;

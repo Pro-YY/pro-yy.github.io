@@ -3,7 +3,7 @@ layout: post
 title: "Session with Express and Nginx"
 date: 2015-07-17 17:12:56 +0800
 comments: true
-categories:
+categories: Nginx HTTP Javascript
 ---
 
 ## 为什么一定要持久化存储会话信息

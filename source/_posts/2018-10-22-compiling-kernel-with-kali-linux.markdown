@@ -3,7 +3,7 @@ layout: post
 title: "compiling kernel with kali linux"
 date: 2018-10-22 09:57:10 +0800
 comments: true
-categories: 
+categories: Linux
 ---
 
 With the instructions in [Recompiling the Kali Linux Kernel](https://docs.kali.org/development/recompiling-the-kali-linux-kernel), we can recompile the whole linux kernel of our kali linux.

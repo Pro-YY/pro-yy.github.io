@@ -3,7 +3,7 @@ layout: post
 title: "Shadowsocks Tutorial"
 date: 2015-07-29 19:37:13 +0800
 comments: true
-categories:
+categories: Network
 ---
 
 ##Overview

@@ -3,7 +3,7 @@ layout: post
 title: "building linux kernel module"
 date: 2018-10-23 10:30:28 +0800
 comments: true
-categories: 
+categories: Linux
 ---
 
 
@@ -41,6 +41,7 @@ apt install linux-headers-4.18.0.kali2-amd64
 ## Simple Module Code
 
 *hello.c*
+
 ```c
 #include <linux/module.h>
 

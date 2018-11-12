@@ -3,7 +3,7 @@ layout: post
 title: "[solved] FFMPEG: libmp3lame not found"
 date: 2017-10-24 15:09:04 +0800
 comments: true
-categories:
+categories: FFmpeg
 ---
 
 ### ERROR: libmp3lame >= 3.98.3 not found

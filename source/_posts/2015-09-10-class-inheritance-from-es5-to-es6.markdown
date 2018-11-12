@@ -3,7 +3,7 @@ layout: post
 title: "Class Inheritance from ES5 to ES6"
 date: 2015-09-10 19:29:24 +0800
 comments: true
-categories:
+categories: Javascript
 ---
 
 ## Test Case
