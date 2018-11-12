@@ -7,9 +7,38 @@ categories:
 ---
 
 ## Linux Eventfd Overview
+An  "eventfd  object" can be used as an event wait/notify mechanism by user-space applications, and by the kernel to notify user-space applications of events.
+It has been added to kernel since Linux 2.6.22. And the object contains an unsigned 64-bit integer (uint64_t) counter that is maintained by the kernel. So it's extremely fast to access.
+
+```c
+#include <sys/eventfd.h>
+int eventfd(unsigned int initval, int flags);
+```
+
+That's all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.
+
+Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.
+
+There're several notes of which we should take special account:
+
+> Applications can use an eventfd file descriptor instead of a pipe **in all cases where a pipe is used simply to signal events**.  The kernel overhead of an eventfd file descriptor is much lower than that of a pipe, and only one file descriptor is required (versus the two required for a pipe).
+
+As with signal events, eventfd is much more light-weight (thus fast) compared to the pipes, it's just a counter in kernel after all.
+
+> A key point about an eventfd file descriptor is that it can be monitored just like any other file descriptor using select(2), poll(2), or epoll(7). This means that an application can simultaneously monitor the readiness of "traditional" files and the readiness of other kernel mechanisms that support the eventfd interface.
+
+You won't wield the true power of eventfd, unless you monitor them with epoll (especially EPOLLET).
+
+So, let's get our hands dirty with an simple worker thread pool!
+
+##  Worker Pool Design
+We adopt Producer/Consumer pattern for our worker thread pool, as it's the most common style of decoupling, acheiving the best scalability.
+By leveraging the asynchronous notification feature from the eventfd, our inter-thread communication sequence could be described as following:
+
+![](/images/worker-pool-with-eventfd/eventfd_notify.svg)
 
 ## Implementation
-Our per-thread data structure is fairly simple, only contains 3 fields: thread_id, rank (thread index) and the epoll file descriptor, which is created by `main` function.
+Our per-thread data structure is fairly simple, only contains 3 fields: `thread_id`, `rank` (thread index) and `epfd` which is the epoll file descriptor created by `main` function.
 ```c
 typedef struct thread_info {
     pthread_t thread_id;
@@ -18,7 +47,7 @@ typedef struct thread_info {
 } thread_info_t;
 ```
 
-consumer thread routine
+### Consumer thread routine
 ```c
 static void *consumer_routine(void *data) {
     struct thread_info *c = (struct thread_info *)data;
@@ -52,12 +81,12 @@ static void *consumer_routine(void *data) {
     }
 }
 ```
-As we can see, the worker thread get the notification by simply polling `epoll-wait()` the epoll-added fd list, and `read()` the eventfd to consume it,  then `close()` to clean it.
+As we can see, the worker thread get the notification by simply polling `epoll_wait()` the epoll-added fd list, and `read()` the eventfd to consume it,  then `close()` to clean it.
 And we can do anything sequential within the `do_task`, although it now does nothing.
 
 In short: poll -> read -> close.
 
-producer thread routine
+#### Producer thread routine:
 ```c
 static void *producer_routine(void *data) {
     struct thread_info *p = (struct thread_info *)data;
@@ -81,18 +110,20 @@ static void *producer_routine(void *data) {
     }
 }
 ```
-In producer routine, after creating `eventfd`, we register the event with epoll object by `epoll_ctl()`. Note that the event is set for write (EPOLLIN) and Edge-Triggerd (EPOLLET).
+In producer routine, after creating `eventfd`, we register the event with epoll object by `epoll_ctl()`. Note that the event is set for write (EPOLLIN) and Edge-Triggered (EPOLLET).
 For notification, what we need to do is just write `0x1` (any value you want) to eventfd.
 
 In short: create -> register -> write.
 
 *Source code repository*: [eventfd_examples](https://github.com/Pro-YY/eventfd_examples/)
 
+
 ## Output & Analysis
 The expected output is clear as:
+
 ![](/images/worker-pool-with-eventfd/eventfd_worker_execution.gif)
 
-You can adjust threads num to inspect the detail, and there's a plethora of fun with it.
+You can adjust threads number to inspect the detail, and there's a plethora of fun with it.
 
 
 But now, let's try something hard. We'll `smoke test` our worker by generate a heavy instant load, instead of the former regular one. And we tweak the producer/consumer thread to 1, and watching the performance.
@@ -128,7 +159,24 @@ ulimit -n 1048576
 Since the info of stdout is so much that we redirect the stdout to file *log*.
 ![](/images/worker-pool-with-eventfd/eventfd_worker_execution_spike.gif)
 
-With my test VM (S2.Medium4 type on [TencentCloud](https://cloud.tencent.com/), which has only 2 vCPU and 4G memory, it takes less than 6.5 seconds to deal with 1 million concurrent (almost) events. And we've seen the kernel-implemented counters and wait queue are quite effiecient.
+With my test VM (S2.Medium4 type on [TencentCloud](https://cloud.tencent.com/), which has only 2 vCPU and 4G memory, it takes less than 6.5 seconds to deal with 1 million concurrent (almost) events. And we've seen the kernel-implemented counters and wait queue are quite efficient.
+
+
 
 ## Conclusions
+Multi-threaded programming model is prevailing now, while the best way of scheduling (event trigger and dispatching method) is still under discussion and sometimes even opinionated.
+In this post, we've implemented general-purposed worker thread pool based on an advanced message mechanism, which includes:
+
+1. message notification: asynchronous delivering, extremely low overhead, high performance
+2. message dispatching: as a load balancer, highly scalable
+3. message buffering: as message queue, with robustness
+
+All the above are fulfilled by using basic Linux kernel feature/syscall, like `epoll` and `eventfd`.
+Everyone may refers to this approach when he/she designs a single-process performant (especially IO-bound) background service.
+
+To sum up, taking advantage of Linux kernel capability, we are now managed to implement our high-performance message-based worker pool, which is able to deal with large throughput and of high scalability.
+
 ## References
+- [eventfd(2) - Linux Man Page](https://linux.die.net/man/2/eventfd)
+- [eventpoll - Linux Source Code](https://elixir.bootlin.com/linux/latest/source/fs/eventpoll.c)
+- [eventfd - Linux Source Code](https://elixir.bootlin.com/linux/latest/source/fs/eventfd.c)
