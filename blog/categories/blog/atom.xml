@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Blog | Brooke's Notes]]></title>
+  <link href="https://www.yangyang.cloud/blog/categories/blog/atom.xml" rel="self"/>
+  <link href="https://www.yangyang.cloud/"/>
+  <updated>2018-11-12T22:05:12+08:00</updated>
+  <id>https://www.yangyang.cloud/</id>
+  <author>
+    <name><![CDATA[BrookeYang(杨阳)]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Blog Writing With Octopress 3]]></title>
+    <link href="https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3/"/>
+    <updated>2015-07-15T20:38:31+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2015/07/15/blog-writing-with-octopress-3</id>
+    <content type="html"><![CDATA[<h2>initialize workspace</h2>
+
+<pre><code>  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b source
+  cd pro-yy.github.io/
+  git clone git@github.com:Pro-YY/pro-yy.github.io.git -b master _deploy
+  apt install ruby-bundler ruby-dev
+  bundle install
+</code></pre>
+
+<h2>write post</h2>
+
+<pre><code>  rake new_post["Blog Writing with Octopress 3"]
+  vim source/_posts/2015-07-15-blog-writing-with-octopress-3.markdown
+</code></pre>
+
+<h2>preview</h2>
+
+<pre><code>  rake generate
+  rake preview
+</code></pre>
+
+<p>preview at <a href="http://localhost:4000">http://localhost:4000</a></p>
+
+<h2>deploy</h2>
+
+<pre><code>  rake deploy
+</code></pre>
+
+<h2>commit source</h2>
+
+<pre><code>  git commit -asm 'new post'
+  git push
+</code></pre>
+
+<h2>update octopress</h2>
+
+<pre><code>  git remote add octopress git://github.com/imathis/octopress.git
+  git pull octopress master
+  bundle install
+  rake update_source
+  rake update_style
+</code></pre>
+
+<h2>category list/cloud</h2>
+
+<p>plugin from <a href="https://github.com/alswl/octopress-category-list">https://github.com/alswl/octopress-category-list</a></p>
+]]></content>
+  </entry>
+  
+</feed>

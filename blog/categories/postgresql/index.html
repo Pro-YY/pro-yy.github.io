@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Http Load Testing With Wrk2 - Brooke's Notes</title>
+  <title>Category: Postgresql - Brooke's Notes</title>
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overviews How to measure our server&rsquo;s performance?
-With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark. Let&rsquo; &hellip;">
+  <meta name="description" content="Category: postgresql">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@ With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/">
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/categories/postgresql/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
@@ -91,171 +90,36 @@ With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark
   <div id="main">
     <div id="content">
       <div>
-<article class="hentry" role="article">
+<article role="article">
   
   <header>
-    
-      <h1 class="entry-title">Http Load Testing With Wrk2</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2018-11-05T16:36:47+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>4:36 pm</span></time>
-        
-           | <a href="#disqus_thread"
-             data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
-        
-      </p>
+    <h1 class="entry-title">Category: Postgresql</h1>
     
   </header>
-
-
-<div class="entry-content"><h2>Overviews</h2>
-
-<p>How to measure our server&rsquo;s performance?
-With this artical, we&rsquo;ll discuss and experiment with HTTP server benchmark.</p>
-
-<p>Let&rsquo;s start to recap some of the key concept related:</p>
-
-<ul>
-<li><p>Connection</p>
-
-<p>  The number of simultaneous tcp connections, sometimes refered as <code>Number of Users</code> in other benchmark tools.</p></li>
-<li><p>Latency</p>
-
-<p>  For HTTP request, it is the same as the <code>Response Time</code>, measured by <code>ms</code>. And it is tested from clients.
-  The latency <code>percentile</code>, like p50/p90/p99, is the most common QoS metric.</p></li>
-<li><p>Throughput</p>
-
-<p>  For HTTP request, it&rsquo;s also refered as <code>requests/second</code> or <code>RPS</code> for short. Usually, as the number of connections increases, the system throughput goes down.</p></li>
-</ul>
-
-
-<p>So, what does <code>load testing</code> really mean?</p>
-
-<p>In brief, it&rsquo;s to determine the maximum throughput (the highest RPS), under specified number of connection, with all response time satisfying the latancy target.</p>
-
-<p>Thus, we can remark a server capability like this:</p>
-
-<blockquote><p>&ldquo;Our server instance can achieve 20K RPS under 5K simultaneous connections with latency p99 at less than 200ms.&rdquo;</p></blockquote>
-
-<h2>What&rsquo;s wrk2</h2>
-
-<p><a href="https://github.com/giltene/wrk2">wrk2</a> is an HTTP benchmakring cli tool, which is considered better than <a href="https://httpd.apache.org/docs/2.4/programs/ab.html">ab</a> or <a href="https://github.com/wg/wrk">wrk</a>.
-With wrk2, we are able to generate some constant throughput load, and its latency detail is more accrate. As a command-line tool, it&rsquo;s quite convenient and fast.</p>
-
-<ul>
-<li>-d: duration, test time. Note that it has a 10 second calibration time, so this should be specified no shorter than 20s.</li>
-<li>-t: threads num. Just set it to cpu cores.</li>
-<li>-R: or &ndash;rate, expected throughput, the result RPS which is real throughput, will be lower than this value.</li>
-<li>-c: connections num. The Number of connections that will be kept open.</li>
-</ul>
-
-
-<h2>SUT simple implementation</h2>
-
-<p>All servers are simple http-server, which simply response <code>Hello, world!\n</code> to clients.</p>
-
-<ul>
-<li>Rust 1.28.0 (hyper 0.12)</li>
-<li>Go 1.11.1 http module</li>
-<li>Node.js 8.11.4</li>
-<li>Python 3.5.2 asyncio</li>
-</ul>
-
-
-<h2>Testing Workflow</h2>
-
-<p>Our latency target: <strong>The 99 percentile is less than 200ms.</strong> It&rsquo;s a fairly high performance in real world.</p>
-
-<p>Due to the calibration time of wrk2, all the test last for 30~60 seconds.
-And since our test machine has 2 cpu-threads, our command is like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>./wrk -t2 -c100 -d60 -R 18000 -L http://$HOST:$PORT/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We iterate to execute the command, and increase the reqeust rate (-R argument) by 500 on each turn until we find the maximum RPS. The whole workflow can be explained as:
-<img src="/images/http-load-testing-with-wrk2/hb_wf.svg" alt="" /></p>
-
-<p>Then we go on test for a larger number of connections, until the latancy target is no longer satified or socket connection errors occur. And move to next server.</p>
-
-<h2>Results Analysis</h2>
-
-<p>Now, let&rsquo;s feed our output data to plot program with <a href="https://matplotlib.org/3.0.0/">matplotlib</a>, and finally get the whole picture below:
-<img src="/images/http-load-testing-with-wrk2/http_performance_benchmark.svg" alt="" /></p>
-
-<p>The plot is fairly clear. Rust beats Go even in such an I/O intensive scenario, which shows the non-blocking sockets version of hyper really makes something great. Node.js is indeed slower than Go, while Python&rsquo;s default asyncio event loop have a rather poor performance.
-As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both Rust and Go can still hold very well without any socket connection error, though the response time is longer, and Rust still performed better, while the last two may get down.</p>
-
-<h2>Conclusions</h2>
-
-<p>In this post, we managed to benchmark the performance of our web server by using wrk2. And with finite experiment steps, we could determine the server&rsquo;s highest throughput under certain number of connections, which meets the specified latency QoS target.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/giltene/wrk2">https://github.com/giltene/wrk2</a></li>
-<li><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing</a></li>
-<li><a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">https://blog.loadimpact.com/open-source-load-testing-tool-review</a></li>
-</ul>
-
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn">BrookeYang(杨阳)</span></span>
-
-      
+  <div id="blog-archives" class="category">
 
 
 
-
-<time class='entry-date' datetime='2018-11-05T16:36:47+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>4:36 pm</span></time>
-      
-
-<span class="categories">
   
-    <a class='category' href='/blog/categories/network/'>network</a>
+  <h2>2016</h2>
+
+<article>
   
-</span>
+<h1><a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a></h1>
+<time datetime="2016-01-31T14:03:30+08:00" pubdate><span class='month'>Jan</span> <span class='day'>31</span> <span class='year'>2016</span></time>
+
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/postgresql/'>postgresql</a></span>
+</footer>
 
 
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2018/10/23/building-linux-kernel-module/" title="Previous Post: building linux kernel module">&laquo; building linux kernel module</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2018/11/09/worker-pool-with-eventfd/" title="Next Post: worker pool with eventfd">worker pool with eventfd &raquo;</a>
-      
-    </p>
-  </footer>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
-  </section>
+
+  
+</article>
 
 </div>
 
@@ -370,10 +234,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
       var disqus_shortname = 'yangyangcloud';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/';
-        var disqus_url = 'https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

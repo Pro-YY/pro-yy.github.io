@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Ffmpeg | Brooke's Notes]]></title>
+  <link href="https://www.yangyang.cloud/blog/categories/ffmpeg/atom.xml" rel="self"/>
+  <link href="https://www.yangyang.cloud/"/>
+  <updated>2018-11-12T22:05:12+08:00</updated>
+  <id>https://www.yangyang.cloud/</id>
+  <author>
+    <name><![CDATA[BrookeYang(杨阳)]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[[Solved] FFMPEG: Libmp3lame Not Found]]></title>
+    <link href="https://www.yangyang.cloud/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/"/>
+    <updated>2017-10-24T15:09:04+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found</id>
+    <content type="html"><![CDATA[<h3>ERROR: libmp3lame >= 3.98.3 not found</h3>
+
+<p>This configure error occurs when building ffmpeg from with mp3 library (libmp3lame) enabled.</p>
+
+<p>solution: add <strong>-lm</strong> to <strong>extra-libs</strong>, like this
+<code>
+./configure \
+--extra-libs="-lpthread -lm"
+...  # other configure options
+</code>
+Done!</p>
+
+<h4>HOW</h4>
+
+<p>Check <em>ffbuild/config.log</em>, which shows dynamic linking error of libmp3lame, which requires the math lib.
+<code>
+util.c:(.text+0x96d): undefined reference to `__exp_finite'
+util.c:(.text+0xa41): undefined reference to `__pow_finite'      
+layer3.c:(.text+0x2250): undefined reference to `sin'
+layer3.c:(.text+0x226a): undefined reference to `cos'       
+</code>
+Yeah!</p>
+]]></content>
+  </entry>
+  
+</feed>

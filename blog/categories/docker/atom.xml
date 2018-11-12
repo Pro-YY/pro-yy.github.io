@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Docker | Brooke's Notes]]></title>
+  <link href="https://www.yangyang.cloud/blog/categories/docker/atom.xml" rel="self"/>
+  <link href="https://www.yangyang.cloud/"/>
+  <updated>2018-11-12T22:05:12+08:00</updated>
+  <id>https://www.yangyang.cloud/</id>
+  <author>
+    <name><![CDATA[BrookeYang(杨阳)]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Docker Practice: Storage]]></title>
+    <link href="https://www.yangyang.cloud/blog/2016/01/31/docker-practice-storage/"/>
+    <updated>2016-01-31T14:03:30+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2016/01/31/docker-practice-storage</id>
+    <content type="html"><![CDATA[<h2>Docker基础</h2>
+
+<h3>简介</h3>
+
+<p><a href="https://www.docker.com/what-docker">Docker</a>作为著名的开源容器引擎，在业界有着广泛的使用。
+由于使用了现代Linux内核高级特性(如cgroup，namespace)，它可以更高效更安全地使用宿主机的计算、存储、网络等资源。
+容器技术作为轻量级的虚拟化技术，相比传统的基于Hypervisor和VM的虚拟化更适合大规模的横向扩展。
+容器技术独立与上层应用语言和底层操作系统，将代码和其所依赖的环境整体打包，实现了“构建一次，处处运行”的目标。
+在构建应用方面，容器技术可以大大提升运维工作的效率，缩短应用开发上线发布周期，甚至重新定义了软件开发、测试、交付和部署的流程。</p>
+
+<p>本文作为Docker的初级实践总结，描述了Docker的<strong>安装及基本命令</strong>，并以<strong>Redis</strong>和<strong>PostgreSQL</strong>的服务部署为例，记录Docker官方镜像服务部署的过程。</p>
+
+<h3>安装</h3>
+
+<p>在ubuntu 14.04下安装参考<a href="https://docs.docker.com/engine/installation/ubuntulinux/">安装文档</a>，过程如下:
+<code>
+sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+sudo su -c "echo 'deb https://apt.dockerproject.org/repo ubuntu-trusty main' &gt; /etc/apt/sources.list.d/docker.list"
+sudo apt-get update
+sudo apt-get install docker-engine
+</code></p>
+
+<h4>免sudo执行docker</h4>
+
+<p>将指定用户加入docker组，并重新登录
+<code>
+sudo usermod -aG docker $USER
+</code></p>
+
+<h4>更改docker默认数据目录</h4>
+
+<p>更改<em>/etc/default/docker</em>
+<code>
+DOCKER_OPTS="-g /data/var/lib/docker"
+</code>
+重启服务
+<code>
+sudo service docker restart
+</code></p>
+
+<h3>基本操作</h3>
+
+<p>常用启动容器实例模式</p>
+
+<p>后台执行容器 <strong>-d</strong>
+<code>
+docker run -d ubuntu /bin/bash -c "vmstat 5"  # docker logs -f 查看输出
+</code>
+执行完命令即时删除 <strong>&ndash;rm</strong>
+<code>
+docker run --rm ubuntu /bin/bash -c "uname -a"
+</code>
+交互式 <strong>-it</strong>
+<code>
+docker run -it ubuntu /bin/bash   # 操作完成后容器停止，可以start，再attach
+docker exec -it CONTAINER_NAME /bin/bash # shell到后台运行的容器
+</code></p>
+
+<p>查看子命令使用: docker help inspect</p>
+
+<p>列出所有运行的容器列表: docker ps</p>
+
+<p>删除所有容器: docker rm $(docker ps -aq)</p>
+
+<p>搜索镜像: <a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
+
+<h2>Redis服务部署</h2>
+
+<p><a href="http://redis.io/">Redis</a>是开源的内存数据结构存储引擎，常用来实现缓存服务、键值存储引擎以及Pub/Sub引擎等。用Docker部署Redis服务非常便捷。</p>
+
+<pre><code>docker run --name myapp-redis -p 127.0.0.1:49514:6379 -d redis
+</code></pre>
+
+<p>Docker会做以下工作:</p>
+
+<p>在本地需找官方<a href="https://hub.docker.com/_/redis/">redis官方镜像</a>，如果没有则下载；用官方镜像启动名为<em>myapp-redis</em>的容器实例；将实例开放的默认redis服务6379端口映射到宿主系统的本地49514端口。</p>
+
+<p>查看redis服务的日志</p>
+
+<pre><code>docker logs -f myapp-redis
+</code></pre>
+
+<p>验证:通过宿主系统的redis客户端访问
+<code>
+redis-cli -p 49514
+</code></p>
+
+<h2>PostgreSQL服务部署</h2>
+
+<p><a href="http://www.postgresql.org/">PostgreSQL</a>是开源的关系型数据库。用Docker部署PostgreSQL服务同样直观便捷。</p>
+
+<pre><code>docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
+-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
+-e POSTGRES_PASSWORD=postgres                               \
+-d postgres
+</code></pre>
+
+<p>同样的，docker会下载<a href="https://hub.docker.com/_/postgres/">postgresql官方镜像</a>，启动myapp-postgres实例，并将服务端口映射到宿主机的49513端口。</p>
+
+<p>注意这里用到<strong>-v</strong>参数，可以为容器的volume(数据卷)指定映射目录。
+官方的postgresql镜像将<em>/var/lib/postgresql/data/</em>目录作为volume处理，使得单独存储数据变得简单。
+可以简单的理解为将<em>$(pwd)/pg-data</em>作为设备挂载到容器的<em>/var/lib/postgresql/data/</em>目录。这样，备份和迁移都很方便，不依赖容器。</p>
+
+<p><strong>-e</strong>参数为创建容器时指定的环境变量，这里将postrgres超级用户的密码设置为postgres。</p>
+
+<p>然后便可以在宿主机通过posgresql的客户端(如psql、createuser、createdb)访问服务了。</p>
+
+<pre><code># 以postgres超级用户测试数据连接
+PGPASSWORD=postgres psql -h localhost -p 49513 -U postgres -e
+# 创建用户myapp，并设置访问权限(可以创建角色和数据库)及密码
+PGPASSWORD=postgres createuser -h localhost -p 49513 -U postgres -rdeP myapp
+# 以新用户创建同名数据库
+PGPASSWORD=myapp-pass createdb -h localhost -p 49513 -U myapp -e myapp
+</code></pre>
+
+<p>官方镜像还支持若干个环境变量，如初始superuser的用户名及密码等等。以下一个命令即可完成以上流程。
+<code>
+docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
+-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
+-e POSTGRES_PASSWORD=myapp-pass -e POSTGRES_USER=myapp      \
+-d postgres
+</code></p>
+
+<h2>总结</h2>
+
+<p>通过以上两个例子，创建了两个容器实例，分别是redis服务和有分离数据卷的postgresql服务。
+通过应用Docker容器技术，最核心的是简化测试交付部署流程，并使这些流程更容易地实现自动化。
+从而使开发者更多地专注于业务逻辑，加速其价值提升。</p>
+]]></content>
+  </entry>
+  
+</feed>

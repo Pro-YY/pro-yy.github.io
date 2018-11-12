@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
+  <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="https://www.yangyang.cloud/"/>
+  <updated>2018-11-12T22:05:12+08:00</updated>
+  <id>https://www.yangyang.cloud/</id>
+  <author>
+    <name><![CDATA[BrookeYang(杨阳)]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Worker Pool With Eventfd]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/11/09/worker-pool-with-eventfd/"/>
+    <updated>2018-11-09T22:41:08+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/11/09/worker-pool-with-eventfd</id>
+    <content type="html"><![CDATA[<h2>Linux Eventfd Overview</h2>
+
+<p>An  &ldquo;eventfd  object&rdquo; can be used as an event wait/notify mechanism by user-space applications, and by the kernel to notify user-space applications of events.
+It has been added to kernel since Linux 2.6.22. And the object contains an unsigned 64-bit integer (uint64_t) counter that is maintained by the kernel. So it&rsquo;s extremely fast to access.</p>
+
+<pre><code class="c">#include &lt;sys/eventfd.h&gt;
+int eventfd(unsigned int initval, int flags);
+</code></pre>
+
+<p>That&rsquo;s all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.</p>
+
+<p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
+
+<p>There&rsquo;re several notes of which we should take special account:</p>
+
+<blockquote><p>Applications can use an eventfd file descriptor instead of a pipe <strong>in all cases where a pipe is used simply to signal events</strong>.  The kernel overhead of an eventfd file descriptor is much lower than that of a pipe, and only one file descriptor is required (versus the two required for a pipe).</p></blockquote>
+
+<p>As with signal events, eventfd is much more light-weight (thus fast) compared to the pipes, it&rsquo;s just a counter in kernel after all.</p>
+
+<blockquote><p>A key point about an eventfd file descriptor is that it can be monitored just like any other file descriptor using select(2), poll(2), or epoll(7). This means that an application can simultaneously monitor the readiness of &ldquo;traditional&rdquo; files and the readiness of other kernel mechanisms that support the eventfd interface.</p></blockquote>
+
+<p>You won&rsquo;t wield the true power of eventfd, unless you monitor them with epoll (especially EPOLLET).</p>
+
+<p>So, let&rsquo;s get our hands dirty with an simple worker thread pool!</p>
+
+<h2>Worker Pool Design</h2>
+
+<p>We adopt Producer/Consumer pattern for our worker thread pool, as it&rsquo;s the most common style of decoupling, acheiving the best scalability.
+By leveraging the asynchronous notification feature from the eventfd, our inter-thread communication sequence could be described as following:</p>
+
+<p><img src="/images/worker-pool-with-eventfd/eventfd_notify.svg" alt="" /></p>
+
+<h2>Implementation</h2>
+
+<p>Our per-thread data structure is fairly simple, only contains 3 fields: <code>thread_id</code>, <code>rank</code> (thread index) and <code>epfd</code> which is the epoll file descriptor created by <code>main</code> function.</p>
+
+<pre><code class="c">typedef struct thread_info {
+    pthread_t thread_id;
+    int rank;
+    int epfd;
+} thread_info_t;
+</code></pre>
+
+<h3>Consumer thread routine</h3>
+
+<pre><code class="c">static void *consumer_routine(void *data) {
+    struct thread_info *c = (struct thread_info *)data;
+    struct epoll_event *events;
+    int epfd = c-&gt;epfd;
+    int nfds = -1;
+    int i = -1;
+    int ret = -1;
+    uint64_t v;
+    int num_done = 0;
+
+    events = calloc(MAX_EVENTS_SIZE, sizeof(struct epoll_event));
+    if (events == NULL) exit_error("calloc epoll events\n");
+
+    for (;;) {
+        nfds = epoll_wait(epfd, events, MAX_EVENTS_SIZE, 1000);
+        for (i = 0; i &lt; nfds; i++) {
+            if (events[i].events &amp; EPOLLIN) {
+                log_debug("[consumer-%d] got event from fd-%d",
+                        c-&gt;rank, events[i].data.fd);
+                ret = read(events[i].data.fd, &amp;v, sizeof(v));
+                if (ret &lt; 0) {
+                    log_error("[consumer-%d] failed to read eventfd", c-&gt;rank);
+                    continue;
+                }
+                do_task();
+                log_debug("[consumer-%d] tasks done: %d", c-&gt;rank, ++num_done);
+                close(events[i].data.fd);
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>As we can see, the worker thread get the notification by simply polling <code>epoll_wait()</code> the epoll-added fd list, and <code>read()</code> the eventfd to consume it,  then <code>close()</code> to clean it.
+And we can do anything sequential within the <code>do_task</code>, although it now does nothing.</p>
+
+<p>In short: poll -> read -> close.</p>
+
+<h4>Producer thread routine</h4>
+
+<pre><code class="c">static void *producer_routine(void *data) {
+    struct thread_info *p = (struct thread_info *)data;
+    struct epoll_event event;
+    int epfd = p-&gt;epfd;
+    int efd = -1;
+    int ret = -1;
+    int interval = 1;
+
+    log_debug("[producer-%d] issues 1 task per %d second", p-&gt;rank, interval);
+    while (1) {
+        efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+        if (efd == -1) exit_error("eventfd create: %s", strerror(errno));
+        event.data.fd = efd;
+        event.events = EPOLLIN | EPOLLET;
+        ret = epoll_ctl(epfd, EPOLL_CTL_ADD, efd, &amp;event);
+        if (ret != 0) exit_error("epoll_ctl");
+        ret = write(efd, &amp;(uint64_t){1}, sizeof(uint64_t));
+        if (ret != 8) log_error("[producer-%d] failed to write eventfd", p-&gt;rank);
+        sleep(interval);
+    }
+}
+</code></pre>
+
+<p>In producer routine, after creating <code>eventfd</code>, we register the event with epoll object by <code>epoll_ctl()</code>. Note that the event is set for write (EPOLLIN) and Edge-Triggered (EPOLLET).
+For notification, what we need to do is just write <code>0x1</code> (any value you want) to eventfd.</p>
+
+<p>In short: create -> register -> write.</p>
+
+<p><em>Source code repository</em>: <a href="https://github.com/Pro-YY/eventfd_examples/">eventfd_examples</a></p>
+
+<h2>Output &amp; Analysis</h2>
+
+<p>The expected output is clear as:</p>
+
+<p><img src="/images/worker-pool-with-eventfd/eventfd_worker_execution.gif" alt="" /></p>
+
+<p>You can adjust threads number to inspect the detail, and there&rsquo;s a plethora of fun with it.</p>
+
+<p>But now, let&rsquo;s try something hard. We&rsquo;ll <code>smoke test</code> our worker by generate a heavy instant load, instead of the former regular one. And we tweak the producer/consumer thread to 1, and watching the performance.
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">producer_routine_spike</span><span class="p">(</span><span class="kt">void</span> <span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="n">data</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">thread_info</span> <span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">thread_info</span> <span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="p">)</span><span class="n">data</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">event</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">epfd</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">efd</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">num_task</span> <span class="o">=</span> <span class="mi">1000000</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">log_debug</span><span class="p">(</span><span class="s">&quot;[producer-%d] will issue %d tasks&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">rank</span><span class="p">,</span> <span class="n">num_task</span><span class="p">);</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">num_task</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">efd</span> <span class="o">=</span> <span class="n">eventfd</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">EFD_CLOEXEC</span> <span class="o">|</span> <span class="n">EFD_NONBLOCK</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">efd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">exit_error</span><span class="p">(</span><span class="s">&quot;eventfd create: %s&quot;</span><span class="p">,</span> <span class="n">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">event</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">efd</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">event</span><span class="p">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">EPOLLIN</span> <span class="o">|</span> <span class="n">EPOLLET</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">ret</span> <span class="o">=</span> <span class="n">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">efd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">event</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">exit_error</span><span class="p">(</span><span class="s">&quot;epoll_ctl&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">ret</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="n">efd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;(</span><span class="kt">uint64_t</span><span class="p">){</span><span class="mi">1</span><span class="p">},</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">));</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">)</span> <span class="n">log_error</span><span class="p">(</span><span class="s">&quot;[producer-%d] failed to write eventfd&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">rank</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></p>
+
+<p><strong>Over 1 million?</strong> Indeed! By using the <code>ulimit</code> command below, we can increase the <code>open files</code> limit of the current shell, which is usually 1024 by default.
+Note that you need to be root.
+<code>
+ulimit -n 1048576
+</code>
+Since the info of stdout is so much that we redirect the stdout to file <em>log</em>.
+<img src="/images/worker-pool-with-eventfd/eventfd_worker_execution_spike.gif" alt="" /></p>
+
+<p>With my test VM (S2.Medium4 type on <a href="https://cloud.tencent.com/">TencentCloud</a>, which has only 2 vCPU and 4G memory, it takes less than 6.5 seconds to deal with 1 million concurrent (almost) events. And we&rsquo;ve seen the kernel-implemented counters and wait queue are quite efficient.</p>
+
+<h2>Conclusions</h2>
+
+<p>Multi-threaded programming model is prevailing now, while the best way of scheduling (event trigger and dispatching method) is still under discussion and sometimes even opinionated.
+In this post, we&rsquo;ve implemented general-purposed worker thread pool based on an advanced message mechanism, which includes:</p>
+
+<ol>
+<li>message notification: asynchronous delivering, extremely low overhead, high performance</li>
+<li>message dispatching: as a load balancer, highly scalable</li>
+<li>message buffering: as message queue, with robustness</li>
+</ol>
+
+
+<p>All the above are fulfilled by using basic Linux kernel feature/syscall, like <code>epoll</code> and <code>eventfd</code>.
+Everyone may refers to this approach when he/she designs a single-process performant (especially IO-bound) background service.</p>
+
+<p>To sum up, taking advantage of Linux kernel capability, we are now managed to implement our high-performance message-based worker pool, which is able to deal with large throughput and of high scalability.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://linux.die.net/man/2/eventfd">eventfd(2) - Linux Man Page</a></li>
+<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/eventpoll.c">eventpoll - Linux Source Code</a></li>
+<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/eventfd.c">eventfd - Linux Source Code</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Building Linux Kernel Module]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module/"/>
+    <updated>2018-10-23T10:30:28+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module</id>
+    <content type="html"><![CDATA[<h2>Overview</h2>
+
+<ul>
+<li>What is Linux loadable kernel module(LKM)?</li>
+</ul>
+
+
+<p>A loadable kernel module (LKM) is a machanism for adding/removing code from Linux kernel <strong>at run time</strong>.
+Many of device drivers are implemented through this way, otherwise the monolithic kernel would be too large.</p>
+
+<p>LKM communicates with user-space applications through system calls, and it can access almost all the objects/services of the kernel.
+LKM can be inserted to the monolithic kernel at any time &ndash; usually at booting or running phase.</p>
+
+<p>Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don&rsquo;t need to recomplie the whole kernel nor reboot, and it&rsquo;s more shippable.</p>
+
+<p>So, the easiest way to start kernel programming is to write a module - a piece of code that can be dynamically loaded into the kernel.</p>
+
+<ul>
+<li>How is the LKM different from an user-space application?</li>
+</ul>
+
+
+<p>LKM is run in kernel space, which is quite different.</p>
+
+<p>First off, the code is always asynchronous, which means it doesn&rsquo;t execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
+
+<p>Secondly, there&rsquo;s only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.</p>
+
+<p>Thirdly, note that there&rsquo;s no floating-point math.</p>
+
+<h2>Prepare Headers</h2>
+
+<pre><code class="sh">apt search linux-headers-$(uname -r)
+# get our kernel release: 4.18.0.kali2-amd64
+apt install linux-headers-4.18.0.kali2-amd64
+</code></pre>
+
+<h2>Simple Module Code</h2>
+
+<p><em>hello.c</em></p>
+
+<pre><code class="c">#include &lt;linux/module.h&gt;
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Brooke Yang");
+MODULE_DESCRIPTION("A simple Linux moadable mernel module");
+MODULE_VERSION("0.1");
+
+static char *name = "world";
+module_param(name, charp, S_IRUGO);
+MODULE_PARM_DESC(name, "The name to display");
+
+static int __init hello_init(void) {
+    pr_info("HELLO: Hello, %s!\n", name);
+    return 0;
+}
+
+static void __exit hello_exit(void) {
+    pr_info("HELLO: Bye-bye, %s!\n", name);
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+</code></pre>
+
+<p><strong>pr_info</strong> is a more convenient way of debugging, comparing to the old-style <strong>printk</strong>.
+<code>sh
+printk(KERN_INFO ...);  
+</code></p>
+
+<p><em>Makefile</em>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='makefile'><span class='line'><span class="nv">obj-m</span><span class="o">+=</span>hello.o&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'><span class="nf">&lt;p&gt;all</span><span class="o">:</span>
+</span><span class='line'>    make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build/ <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> modules
+</span><span class='line'><span class="nf">clean</span><span class="o">:</span>
+</span><span class='line'>    make -C /lib/modules/<span class="k">$(</span>shell uname -r<span class="k">)</span>/build/ <span class="nv">M</span><span class="o">=</span><span class="k">$(</span>PWD<span class="k">)</span> clean
+</span></code></pre></td></tr></table></div></figure></p>
+
+<h2>Build &amp;&amp; Install</h2>
+
+<p>Now we can <code>make</code> our <strong>hello</strong> module and then a <em>hello.ko</em> emerged successfully.
+<code>sh
+root@kali:/opt/kernel-modules/hello# make
+make -C /lib/modules/4.18.0-kali2-amd64/build/ M=/opt/kernel-modules/hello modules
+make[1]: Entering directory '/usr/src/linux-headers-4.18.0-kali2-amd64'
+  CC [M]  /opt/kernel-modules/hello/hello.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /opt/kernel-modules/hello/hello.mod.o
+  LD [M]  /opt/kernel-modules/hello/hello.ko
+make[1]: Leaving directory '/usr/src/linux-headers-4.18.0-kali2-amd64'
+root@kali:/opt/kernel-modules/hello# ls -l
+total 556
+-rw-r--r-- 1 root root    566 Oct 23 09:41 hello.c
+-rw-r--r-- 1 root root 272720 Oct 23 09:41 hello.ko
+-rw-r--r-- 1 root root    872 Oct 23 09:41 hello.mod.c
+-rw-r--r-- 1 root root 136376 Oct 23 09:41 hello.mod.o
+-rw-r--r-- 1 root root 137864 Oct 23 09:41 hello.o
+-rw-r--r-- 1 root root    154 Oct 23 09:38 Makefile
+-rw-r--r-- 1 root root     42 Oct 23 09:41 modules.order
+-rw-r--r-- 1 root root      0 Oct 23 09:41 Module.symvers
+</code></p>
+
+<p>display module info
+<code>
+root@kali:/opt/kernel-modules/hello# modinfo hello.ko
+filename:       /opt/kernel-modules/hello/hello.ko
+version:        0.1
+description:    A simple Linux moadable mernel module
+author:         Brooke Yang
+license:        GPL
+srcversion:     440743A20C6C4688E185D30
+depends:        
+retpoline:      Y
+name:           hello
+vermagic:       4.18.0-kali2-amd64 SMP mod_unload modversions
+parm:           name:The name to display (charp)
+</code></p>
+
+<pre><code>root@kali:/opt/kernel-modules/hello# insmod hello.ko
+root@kali:/opt/kernel-modules/hello# rmmod hello
+root@kali:/opt/kernel-modules/hello# insmod hello.ko name=Brooke
+root@kali:/opt/kernel-modules/hello# rmmod hello
+</code></pre>
+
+<p>we can watch the log by <code>tail -f</code> the <em>/var/log/kern.log</em> or just <code>dmesg</code>
+<code>
+Oct 23 09:51:37 kali kernel: [ 2651.831228] HELLO: Hello, world!
+Oct 23 09:51:44 kali kernel: [ 2658.680087] HELLO: Bye-bye, world!
+Oct 23 09:51:57 kali kernel: [ 2672.409216] HELLO: Hello, Brooke!
+Oct 23 09:52:02 kali kernel: [ 2677.482181] HELLO: Bye-bye, Brooke!
+</code>
+Done!</p>
+
+<p>note: charp parm can even be Chinese.</p>
+
+<h2>Conclusions</h2>
+
+<p>With this artical, we managed to complete our first yet very simple Linux loadable kernel module(LKM).</p>
+
+<p>We&rsquo;ve got a broad view of how the LKMs work. And we should configure our own kernel modules, build and insert/remove them at runtime, and define/pass custom parameters to them.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/">writing a linux kernel module part 1 introduction</a></li>
+<li><a href="https://qnaplus.com/how-to-compile-linux-kernel-module/">how to compile linux kernel modul</a></li>
+<li><a href="https://qnaplus.com/linux-kernel-programming-basics-create-loadable-kernel-module/">linux kernel programming basics create loadable kernel module</a></li>
+<li><a href="https://www.linuxvoice.com/be-a-kernel-hacker/">be a kernel hacker</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Compiling Kernel With Kali Linux]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/10/22/compiling-kernel-with-kali-linux/"/>
+    <updated>2018-10-22T09:57:10+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/10/22/compiling-kernel-with-kali-linux</id>
+    <content type="html"><![CDATA[<p>With the instructions in <a href="https://docs.kali.org/development/recompiling-the-kali-linux-kernel">Recompiling the Kali Linux Kernel</a>, we can recompile the whole linux kernel of our kali linux.</p>
+
+<h2>Install Dependencies</h2>
+
+<p>We need to start by installing several build dependency packages, some of them may have already been in installed.
+<code>
+apt install build-essential libncurses5-dev fakeroot bison libssl-dev libelf-dev
+</code></p>
+
+<h2>Download the Kernel Source</h2>
+
+<p>For my system, the kernel version is 4.18, which will be used in following example. Of course, the workflow of other version is just the same.
+<code>
+apt install linux-source-4.18
+[...]
+ls /usr/src
+linux-config-4.18 linux-patch-4.18-rt.patch.xz linux-source-4.18.tar.xz
+</code>
+Then we get the compressed archive of the kernel sources, and we&rsquo;ll extract these files in our working directory, (no special permission need for compiling the kernel). In our example, we use <em>/opt/kernel</em>, and the <em>~/kernel</em> is also an appropriate place.</p>
+
+<pre><code>mkdir /opt/kernel; cd /opt/kernel
+tar -xaf /usr/src/linux-source-4.18.tar.xz
+</code></pre>
+
+<p>Optionally, we may also apply the <em>rt</em> patch, which is for real-time os features.
+<code>
+cd /opt/kernel/linux-source-4.18
+xzcat /usr/src/linux-patch-4.18-rt.patch.xz | patch -p1
+</code></p>
+
+<h2>Configure the Kernel</h2>
+
+<p>When building a more recent version of kernel (possibley with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.
+<code>
+cd /opt/kernel/linux-source-4.18
+cp /boot/config-4.18.0-kali2-amd64 .config
+</code></p>
+
+<p>If you need to make some changes or dicide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
+Note: we can tweak a lot in this phase.</p>
+
+<h2>Write Some Code</h2>
+
+<p>Add one line of code for test(fun), in file <em>init/main.c</em>, <strong>start_kernel</strong> function
+<code>
+    pr_notice("Brookes's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
+    pr_notice("%s", linux_banner);
+</code></p>
+
+<h2>Build the Kernel</h2>
+
+<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate debian source package, or invoke <strong>make clean</strong>.
+<code>
+time make -j4 bindeb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d)
+</code>
+After a while, we get folowing package in the parent directory
+<code>
+linux-headers-4.18.10-custom_4.18.10-20181021_amd64.deb   # headers
+linux-image-4.18.10-custom_4.18.10-20181021_amd64.deb     # kernel image
+linux-image-4.18.10-custom-dbg_4.18.10-20181021_amd64.deb # kernel image with debugging symbols
+linux-libc-dev_4.18.10-20181021_amd64.deb                 # headers of user-space library
+</code></p>
+
+<h3>Trouble Shooting</h3>
+
+<pre><code>No rule to make target 'debian/certs/test-signing-certs.pem', needed by 'certs/x509_certificate_list'. Stop
+</code></pre>
+
+<p>Solve: comment/delete the corresponding config line.</p>
+
+<h2>Install/Remove the Kernel</h2>
+
+<pre><code>dpkg -i ../linux-image-4.18.10-custom_4.18.10-custom_4.18.10-20181021_amd64.deb
+reboot
+</code></pre>
+
+<p>Once booted, we can use <strong>dmesg</strong> to verify our printk message.
+Removing kernel can also be done with dpkg.
+<code>
+dpkg -r linux-image-4.18.10-custom
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>

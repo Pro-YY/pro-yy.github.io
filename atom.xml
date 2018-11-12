@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-12T14:56:59+08:00</updated>
+  <updated>2018-11-12T22:05:12+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -142,7 +142,7 @@ And we can do anything sequential within the <code>do_task</code>, although it n
 
 <p>In short: poll -> read -> close.</p>
 
-<h4>Producer thread routine:</h4>
+<h4>Producer thread routine</h4>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -2243,6 +2243,10 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
 </span><span class='line'>  rake update_source
 </span><span class='line'>  rake update_style</span></code></pre></td></tr></table></div></figure>
 
+
+<h2>category list/cloud</h2>
+
+<p>plugin from <a href="https://github.com/alswl/octopress-category-list">https://github.com/alswl/octopress-category-list</a></p>
 ]]></content>
   </entry>
   
