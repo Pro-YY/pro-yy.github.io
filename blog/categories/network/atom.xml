@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Network | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/network/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-12T22:49:22+08:00</updated>
+  <updated>2018-11-12T22:55:18+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -131,7 +131,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 <p>L0 can ssh (default port 22) to R0 by its public domain name <strong>r0.example.com</strong> with public key, like this:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh &lt;a href="&#109;&#97;&#x69;&#108;&#116;&#x6f;&#x3a;&#117;&#115;&#x65;&#x72;&#x40;&#x72;&#x30;&#x2e;&#101;&#x78;&#97;&#x6d;&#x70;&#108;&#x65;&#46;&#x63;&#111;&#x6d;">&#x75;&#x73;&#101;&#x72;&#x40;&#114;&#x30;&#46;&#101;&#120;&#97;&#x6d;&#112;&#108;&#x65;&#46;&#x63;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh &lt;a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x75;&#115;&#x65;&#114;&#x40;&#x72;&#x30;&#x2e;&#x65;&#120;&#97;&#109;&#x70;&#108;&#x65;&#x2e;&#99;&#x6f;&#109;">&#117;&#x73;&#101;&#114;&#x40;&#x72;&#x30;&#46;&#101;&#120;&#97;&#x6d;&#112;&#108;&#x65;&#46;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/0.png" alt="" /></p>
 
@@ -152,7 +152,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 <p>The mongod has the http web service, listening only on localhost:28017. With the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 &lt;a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#117;&#x73;&#x65;&#114;&#64;&#114;&#x30;&#46;&#x65;&#x78;&#97;&#x6d;&#x70;&#x6c;&#x65;&#x2e;&#99;&#x6f;&#109;">&#x75;&#x73;&#x65;&#x72;&#64;&#114;&#x30;&#x2e;&#101;&#x78;&#97;&#109;&#x70;&#108;&#x65;&#46;&#99;&#x6f;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 &lt;a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x75;&#x73;&#101;&#114;&#x40;&#114;&#x30;&#x2e;&#101;&#120;&#97;&#x6d;&#112;&#x6c;&#x65;&#x2e;&#99;&#x6f;&#x6d;">&#x75;&#115;&#x65;&#114;&#64;&#x72;&#x30;&#46;&#101;&#x78;&#97;&#109;&#112;&#x6c;&#101;&#46;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Then the remote service on 28017 will be accessed on L0&rsquo;s 28018 port from L0.
 <img src="/images/ssh-port-forwarding/1.png" alt="" /></p>
@@ -163,7 +163,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 Because R0 can access R1&rsquo;s private address of the same lan, so the following command will make R1&rsquo;s service of port 10030 accessible from L0&rsquo;s local port 10031.</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 &lt;a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#58;&#117;&#x73;&#x65;&#114;&#x40;&#114;&#x30;&#x2e;&#101;&#120;&#x61;&#x6d;&#x70;&#x6c;&#101;&#x2e;&#x63;&#111;&#x6d;">&#117;&#115;&#101;&#x72;&#x40;&#x72;&#48;&#46;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 &lt;a href="&#109;&#97;&#105;&#108;&#x74;&#x6f;&#x3a;&#117;&#115;&#101;&#114;&#x40;&#x72;&#48;&#x2e;&#x65;&#120;&#97;&#x6d;&#112;&#108;&#101;&#46;&#99;&#x6f;&#x6d;">&#117;&#x73;&#101;&#114;&#x40;&#114;&#48;&#46;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#101;&#46;&#99;&#x6f;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Note, use R1&rsquo;s private ip <em>10.0.0.101</em> instead of <em>localhost</em>.</p>
 
@@ -174,12 +174,12 @@ Because R0 can access R1&rsquo;s private address of the same lan, so the followi
 <p>Say R0 can access R1 through ssh command: ssh secret-user@10.0.0.101, then the following command</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 &lt;a href="&#109;&#97;&#x69;&#x6c;&#116;&#111;&#x3a;&#117;&#115;&#101;&#114;&#x40;&#x72;&#48;&#x2e;&#101;&#120;&#97;&#109;&#112;&#x6c;&#101;&#46;&#99;&#111;&#x6d;">&#117;&#115;&#101;&#114;&#x40;&#114;&#x30;&#x2e;&#101;&#x78;&#x61;&#x6d;&#x70;&#x6c;&#x65;&#46;&#x63;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 &lt;a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#117;&#x73;&#101;&#x72;&#64;&#x72;&#x30;&#46;&#x65;&#120;&#97;&#109;&#112;&#x6c;&#x65;&#x2e;&#x63;&#x6f;&#109;">&#x75;&#x73;&#x65;&#114;&#x40;&#114;&#x30;&#x2e;&#101;&#x78;&#97;&#109;&#112;&#x6c;&#101;&#x2e;&#x63;&#x6f;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>will forward L0&rsquo;s port 2222 to the R1&rsquo;s port 22, and even make L0 listening within the lan. So from L1, we can access to R1 by this command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 &lt;a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#58;&#x73;&#101;&#99;&#x72;&#101;&#116;&#x2d;&#117;&#115;&#x65;&#x72;&#x40;&#49;&#x39;&#50;&#x2e;&#49;&#54;&#x38;&#x2e;&#48;&#46;&#49;&#48;&#48;">&#x73;&#x65;&#x63;&#114;&#x65;&#x74;&#45;&#117;&#x73;&#x65;&#114;&#x40;&#x31;&#57;&#50;&#46;&#x31;&#x36;&#56;&#46;&#48;&#x2e;&#49;&#48;&#48;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 &lt;a href="&#109;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#115;&#x65;&#99;&#114;&#x65;&#x74;&#x2d;&#117;&#115;&#x65;&#x72;&#x40;&#49;&#x39;&#x32;&#46;&#x31;&#x36;&#x38;&#x2e;&#48;&#x2e;&#x31;&#x30;&#x30;">&#115;&#101;&#x63;&#x72;&#x65;&#x74;&#x2d;&#117;&#x73;&#x65;&#114;&#x40;&#x31;&#57;&#x32;&#46;&#x31;&#54;&#56;&#46;&#x30;&#x2e;&#x31;&#48;&#48;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/3.png" alt="" />
 Awesome!</p>
@@ -199,14 +199,14 @@ Awesome!</p>
 <h4>1. Forward R0 to L0</h4>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 &lt;a href="&#109;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#x75;&#115;&#x65;&#x72;&#64;&#x72;&#x30;&#x2e;&#x65;&#x78;&#x61;&#109;&#x70;&#x6c;&#101;&#x2e;&#99;&#111;&#x6d;">&#117;&#x73;&#101;&#114;&#64;&#114;&#48;&#46;&#101;&#x78;&#x61;&#x6d;&#112;&#108;&#101;&#x2e;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 &lt;a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#58;&#117;&#115;&#x65;&#x72;&#x40;&#114;&#48;&#46;&#101;&#120;&#x61;&#x6d;&#112;&#108;&#x65;&#46;&#x63;&#x6f;&#109;">&#117;&#115;&#101;&#x72;&#x40;&#x72;&#48;&#46;&#x65;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#x2e;&#99;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/4.png" alt="" /></p>
 
 <h4>2. Forward R0 to L1</h4>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 &lt;a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x75;&#115;&#101;&#x72;&#x40;&#114;&#48;&#x2e;&#x65;&#120;&#x61;&#x6d;&#x70;&#x6c;&#101;&#46;&#99;&#x6f;&#109;">&#x75;&#115;&#101;&#x72;&#x40;&#114;&#48;&#46;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#101;&#x2e;&#x63;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 &lt;a href="&#109;&#97;&#x69;&#108;&#x74;&#111;&#58;&#117;&#115;&#x65;&#114;&#64;&#114;&#48;&#46;&#x65;&#x78;&#x61;&#x6d;&#112;&#108;&#x65;&#x2e;&#x63;&#x6f;&#109;">&#x75;&#115;&#101;&#114;&#64;&#114;&#48;&#x2e;&#101;&#120;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#99;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/5.png" alt="" /></p>
 
@@ -228,7 +228,7 @@ then the ultimate tunnel created, with which we can access L1&rsquo;s port on ma
 <h3>Example</h3>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 &lt;a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#x75;&#x73;&#101;&#114;&#64;&#x72;&#x30;&#46;&#101;&#120;&#97;&#109;&#112;&#x6c;&#x65;&#46;&#x63;&#x6f;&#x6d;">&#x75;&#115;&#101;&#x72;&#x40;&#x72;&#x30;&#x2e;&#x65;&#120;&#97;&#109;&#x70;&#108;&#101;&#46;&#99;&#x6f;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 &lt;a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#58;&#x75;&#x73;&#101;&#114;&#x40;&#x72;&#x30;&#x2e;&#x65;&#x78;&#97;&#109;&#112;&#108;&#101;&#46;&#x63;&#111;&#x6d;">&#117;&#x73;&#x65;&#114;&#64;&#114;&#48;&#46;&#101;&#120;&#x61;&#109;&#112;&#108;&#101;&#46;&#99;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure>
 Then, there exists a SOCKS server on L0, and we can use it as a proxy server.
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost:1080 &lt;a href="https://www.google.com">https://www.google.com&lt;/a></span></code></pre></td></tr></table></div></figure>
