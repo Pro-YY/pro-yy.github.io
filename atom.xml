@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-12T14:51:25+08:00</updated>
+  <updated>2018-11-12T14:56:59+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -23,13 +23,14 @@
 <p>An  &ldquo;eventfd  object&rdquo; can be used as an event wait/notify mechanism by user-space applications, and by the kernel to notify user-space applications of events.
 It has been added to kernel since Linux 2.6.22. And the object contains an unsigned 64-bit integer (uint64_t) counter that is maintained by the kernel. So it&rsquo;s extremely fast to access.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#include &lt;sys/eventfd.h&gt;
-</span><span class='line'>int eventfd(unsigned int initval, int flags);</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;sys/eventfd.h&gt;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">eventfd</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">initval</span><span class="p">,</span> <span class="kt">int</span> <span class="n">flags</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>That&rsquo;s all we need to create one eventfd file, after that, we can perform normal file operations (like read/write/poll/close) with it.</p>
+<p>That&rsquo;s all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.</p>
 
 <p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
 
