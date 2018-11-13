@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-13T09:55:00+08:00</updated>
+  <updated>2018-11-13T20:18:12+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -29,7 +29,7 @@ int eventfd(unsigned int initval, int flags);
 
 <p>That&rsquo;s all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.</p>
 
-<p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
+<p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset it (zero its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
 
 <p>There&rsquo;re several notes of which we should take special account:</p>
 

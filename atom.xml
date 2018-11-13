@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-13T09:55:00+08:00</updated>
+  <updated>2018-11-13T20:18:12+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -12,6 +12,42 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Distributed Load Testing by Locust]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/"/>
+    <updated>2018-11-13T10:23:38+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust</id>
+    <content type="html"><![CDATA[<h2>overview</h2>
+
+<ul>
+<li><p>What is Distributed Load Testing?</p></li>
+<li><p>Why locust?</p></li>
+</ul>
+
+
+<h2>simple local test</h2>
+
+<p>Next, let&rsquo;s start with a simple case to show how developer perform distributed load testing with locust.</p>
+
+<h2>auto-scaling cluster on cloud</h2>
+
+<h2>conclusions</h2>
+
+<h2>references</h2>
+
+<ul>
+<li><a href="https://locust.io/">locust.io official page</a></li>
+<li><a href="https://cloud.tencent.com/product/as">TencentCloud AutoScaling</a></li>
+<li><a href="https://cloud.google.com/solutions/distributed-load-testing-using-kubernetes">distributed-load-testing-using-kubernetes</a></li>
+<li><a href="https://medium.com/@vigneshwar.ravimurugan/scriptable-and-distributed-load-testing-with-locust-in-azure-kubernetes-service-63d04c083058">Scriptable and Distributed Load Testing with Locust in Azure Kubernetes Service</a></li>
+<li><a href="https://blog.realkinetic.com/load-testing-with-locust-part-1-174040afdf23">Load Testing with Locust (Part 1)</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">an introduction to load testing</a></li>
+<li><a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">open source load testing tool review</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Worker Pool With Eventfd]]></title>
@@ -32,7 +68,7 @@ It has been added to kernel since Linux 2.6.22. And the object contains an unsig
 
 <p>That&rsquo;s all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.</p>
 
-<p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
+<p>Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset it (zero its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.</p>
 
 <p>There&rsquo;re several notes of which we should take special account:</p>
 

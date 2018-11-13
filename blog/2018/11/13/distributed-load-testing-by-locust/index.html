@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: node.js - Brooke's Notes</title>
+  <title>Distributed Load Testing by Locust - Brooke's Notes</title>
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Category: node.js">
+  <meta name="description" content="overview What is Distributed Load Testing?
+Why locust? simple local test Next, let&rsquo;s start with a simple case to show how developer perform &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="https://www.yangyang.cloud/blog/categories/node-dot-js/">
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
@@ -91,36 +92,107 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: node.js</h1>
+    
+      <h1 class="entry-title">Distributed Load Testing by Locust</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-11-13T10:23:38+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>10:23 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><h2>overview</h2>
 
-  
-  <h2>2016</h2>
-
-<article>
-  
-<h1><a href="/blog/2016/06/28/nodejs-circular-dependencies/">Nodejs Circular Dependencies</a></h1>
-<time datetime="2016-06-28T13:23:14+08:00" pubdate><span class='month'>Jun</span> <span class='day'>28</span> <span class='year'>2016</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/node-dot-js/'>node.js</a></span>
-</footer>
+<ul>
+<li><p>What is Distributed Load Testing?</p></li>
+<li><p>Why locust?</p></li>
+</ul>
 
 
-</article>
+<h2>simple local test</h2>
+
+<p>Next, let&rsquo;s start with a simple case to show how developer perform distributed load testing with locust.</p>
+
+<h2>auto-scaling cluster on cloud</h2>
+
+<h2>conclusions</h2>
+
+<h2>references</h2>
+
+<ul>
+<li><a href="https://locust.io/">locust.io official page</a></li>
+<li><a href="https://cloud.tencent.com/product/as">TencentCloud AutoScaling</a></li>
+<li><a href="https://cloud.google.com/solutions/distributed-load-testing-using-kubernetes">distributed-load-testing-using-kubernetes</a></li>
+<li><a href="https://medium.com/@vigneshwar.ravimurugan/scriptable-and-distributed-load-testing-with-locust-in-azure-kubernetes-service-63d04c083058">Scriptable and Distributed Load Testing with Locust in Azure Kubernetes Service</a></li>
+<li><a href="https://blog.realkinetic.com/load-testing-with-locust-part-1-174040afdf23">Load Testing with Locust (Part 1)</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">an introduction to load testing</a></li>
+<li><a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">open source load testing tool review</a></li>
+</ul>
 
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">BrookeYang(杨阳)</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2018-11-13T10:23:38+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>10:23 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/network/'>network</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/11/09/worker-pool-with-eventfd/" title="Previous Post: worker pool with eventfd">&laquo; worker pool with eventfd</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -235,7 +307,10 @@
       var disqus_shortname = 'yangyangcloud';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
