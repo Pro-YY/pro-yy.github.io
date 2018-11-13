@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-12T23:03:58+08:00</updated>
+  <updated>2018-11-13T09:55:00+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -127,9 +127,9 @@ By leveraging the asynchronous notification feature from the eventfd, our inter-
 </span><span class='line'>                    <span class="n">log_error</span><span class="p">(</span><span class="s">&quot;[consumer-%d] failed to read eventfd&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">rank</span><span class="p">);</span>
 </span><span class='line'>                    <span class="k">continue</span><span class="p">;</span>
 </span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>                <span class="n">close</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span><span class="p">);</span>
 </span><span class='line'>                <span class="n">do_task</span><span class="p">();</span>
 </span><span class='line'>                <span class="n">log_debug</span><span class="p">(</span><span class="s">&quot;[consumer-%d] tasks done: %d&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">rank</span><span class="p">,</span> <span class="o">++</span><span class="n">num_done</span><span class="p">);</span>
-</span><span class='line'>                <span class="n">close</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span><span class="p">);</span>
 </span><span class='line'>            <span class="p">}</span>
 </span><span class='line'>        <span class="p">}</span>
 </span><span class='line'>    <span class="p">}</span>

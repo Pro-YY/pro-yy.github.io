@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-12T23:03:58+08:00</updated>
+  <updated>2018-11-13T09:55:00+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -87,9 +87,9 @@ By leveraging the asynchronous notification feature from the eventfd, our inter-
                     log_error("[consumer-%d] failed to read eventfd", c-&gt;rank);
                     continue;
                 }
+                close(events[i].data.fd);
                 do_task();
                 log_debug("[consumer-%d] tasks done: %d", c-&gt;rank, ++num_done);
-                close(events[i].data.fd);
             }
         }
     }
