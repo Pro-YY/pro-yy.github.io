@@ -17,7 +17,7 @@ int eventfd(unsigned int initval, int flags);
 
 That's all we need to create one eventfd file, after that, we can perform normal file operations (like read/write, poll and close) with it.
 
-Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset the it (zero the its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.
+Once some user-space thread write it with value greater than 0, it will instantly be notified to user-space by kernel. Then, the first thread which read it, will reset it (zero its counter), i.e. consume the event. And all the later read will get Error (Resource Temporarily Unavailable), until it is written again (event triggered). Briefly, it transforms an event to a file descriptor that can be effectively monitored.
 
 There're several notes of which we should take special account:
 
