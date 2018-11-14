@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-14T16:45:09+08:00</updated>
+  <updated>2018-11-14T16:58:04+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -45,7 +45,7 @@ int eventfd(unsigned int initval, int flags);
 
 <h2>Worker Pool Design</h2>
 
-<p>We adopt Producer/Consumer pattern for our worker thread pool, as it&rsquo;s the most common style of decoupling, acheiving the best scalability.
+<p>We adopt Producer/Consumer pattern for our worker thread pool, as it&rsquo;s the most common style of decoupling, achieving the best scalability.
 By leveraging the asynchronous notification feature from the eventfd, our inter-thread communication sequence could be described as following:</p>
 
 <p><img src="/images/worker-pool-with-eventfd/eventfd_notify.svg" alt="" /></p>
@@ -240,13 +240,13 @@ Everyone may refers to this approach when he/she designs a single-process perfor
 </ul>
 
 
-<p>A loadable kernel module (LKM) is a machanism for adding/removing code from Linux kernel <strong>at run time</strong>.
+<p>A loadable kernel module (LKM) is a mechanism for adding/removing code from Linux kernel <strong>at run time</strong>.
 Many of device drivers are implemented through this way, otherwise the monolithic kernel would be too large.</p>
 
 <p>LKM communicates with user-space applications through system calls, and it can access almost all the objects/services of the kernel.
 LKM can be inserted to the monolithic kernel at any time &ndash; usually at booting or running phase.</p>
 
-<p>Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don&rsquo;t need to recomplie the whole kernel nor reboot, and it&rsquo;s more shippable.</p>
+<p>Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don&rsquo;t need to recompile the whole kernel nor reboot, and it&rsquo;s more shippable.</p>
 
 <p>So, the easiest way to start kernel programming is to write a module - a piece of code that can be dynamically loaded into the kernel.</p>
 
@@ -257,7 +257,7 @@ LKM can be inserted to the monolithic kernel at any time &ndash; usually at boot
 
 <p>LKM is run in kernel space, which is quite different.</p>
 
-<p>First off, the code is always asynchronous, which means it doesn&rsquo;t execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
+<p>First off, the code is always asynchronous, which means it doesn&rsquo;t execute sequentially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interact with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
 
 <p>Secondly, there&rsquo;s only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.</p>
 
@@ -343,7 +343,7 @@ total 556
 -rw-r--r-- 1 root root      0 Oct 23 09:41 Module.symvers
 </code></p>
 
-<p>display module info
+<p>Display module info
 <code>
 root@kali:/opt/kernel-modules/hello# modinfo hello.ko
 filename:       /opt/kernel-modules/hello/hello.ko
@@ -374,11 +374,11 @@ Oct 23 09:52:02 kali kernel: [ 2677.482181] HELLO: Bye-bye, Brooke!
 </code>
 Done!</p>
 
-<p>note: charp parm can even be Chinese.</p>
+<p>note: char parm can even be Chinese.</p>
 
 <h2>Conclusions</h2>
 
-<p>With this artical, we managed to complete our first yet very simple Linux loadable kernel module(LKM).</p>
+<p>With this article, we managed to complete our first yet very simple Linux loadable kernel module(LKM).</p>
 
 <p>We&rsquo;ve got a broad view of how the LKMs work. And we should configure our own kernel modules, build and insert/remove them at runtime, and define/pass custom parameters to them.</p>
 
@@ -431,13 +431,13 @@ xzcat /usr/src/linux-patch-4.18-rt.patch.xz | patch -p1
 
 <h2>Configure the Kernel</h2>
 
-<p>When building a more recent version of kernel (possibley with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.
+<p>When building a more recent version of kernel (possibly with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.
 <code>
 cd /opt/kernel/linux-source-4.18
 cp /boot/config-4.18.0-kali2-amd64 .config
 </code></p>
 
-<p>If you need to make some changes or dicide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
+<p>If you need to make some changes or decide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
 Note: we can tweak a lot in this phase.</p>
 
 <h2>Write Some Code</h2>
@@ -450,11 +450,11 @@ Note: we can tweak a lot in this phase.</p>
 
 <h2>Build the Kernel</h2>
 
-<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate debian source package, or invoke <strong>make clean</strong>.
+<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate Debian source package, or invoke <strong>make clean</strong>.
 <code>
 time make -j4 bindeb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d)
 </code>
-After a while, we get folowing package in the parent directory
+After a while, we get following package in the parent directory
 <code>
 linux-headers-4.18.10-custom_4.18.10-20181021_amd64.deb   # headers
 linux-image-4.18.10-custom_4.18.10-20181021_amd64.deb     # kernel image

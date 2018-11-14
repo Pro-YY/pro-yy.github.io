@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Memcache | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/memcache/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-14T16:45:09+08:00</updated>
+  <updated>2018-11-14T16:58:04+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -57,7 +57,7 @@
 <pre><code>kill -USR2 $(cat /path/to/php/var/run/php-fpm.pid) # no need sudo
 </code></pre>
 
-<p>Check the php.info page, make sure that memcache section exsists</p>
+<p>Check the php.info page, make sure that memcache section exists</p>
 ]]></content>
   </entry>
   

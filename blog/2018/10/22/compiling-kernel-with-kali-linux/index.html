@@ -156,7 +156,7 @@
 
 <h2>Configure the Kernel</h2>
 
-<p>When building a more recent version of kernel (possibley with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.</p>
+<p>When building a more recent version of kernel (possibly with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by <strong>uname -r</strong>. It is sufficient to just copy the currently-used kernel config to the source directory.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -164,7 +164,7 @@
 </span><span class='line'>cp /boot/config-4.18.0-kali2-amd64 .config</span></code></pre></td></tr></table></div></figure>
 
 
-<p>If you need to make some changes or dicide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
+<p>If you need to make some changes or decide to reconfigure all things from scratch, just call <strong>make menuconfig</strong> command and inspect all the details.
 Note: we can tweak a lot in this phase.</p>
 
 <h2>Write Some Code</h2>
@@ -179,13 +179,13 @@ Note: we can tweak a lot in this phase.</p>
 
 <h2>Build the Kernel</h2>
 
-<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate debian source package, or invoke <strong>make clean</strong>.</p>
+<p>Once configured, we can <strong>make</strong> the kernel. Rather than invoking <strong>make deb-pkg</strong> as the official doc suggested, we use <strong>make bindeb-pkg</strong> here, which will not generate Debian source package, or invoke <strong>make clean</strong>.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>time make -j4 bindeb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d)</span></code></pre></td></tr></table></div></figure>
 
 
-<p>After a while, we get folowing package in the parent directory</p>
+<p>After a while, we get following package in the parent directory</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
