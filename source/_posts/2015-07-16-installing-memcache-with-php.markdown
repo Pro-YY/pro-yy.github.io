@@ -44,4 +44,4 @@ add "extension=memcache.so" to php.ini
 ```
 kill -USR2 $(cat /path/to/php/var/run/php-fpm.pid) # no need sudo
 ```
-Check the php.info page, make sure that memcache section exsists
+Check the php.info page, make sure that memcache section exists

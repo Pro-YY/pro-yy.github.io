@@ -36,13 +36,13 @@ xzcat /usr/src/linux-patch-4.18-rt.patch.xz | patch -p1
 ```
 
 ## Configure the Kernel
-When building a more recent version of kernel (possibley with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by **uname -r**. It is sufficient to just copy the currently-used kernel config to the source directory.
+When building a more recent version of kernel (possibly with an specific patch), the configuration should at first be kept as close as possible to the current running kernel, shown by **uname -r**. It is sufficient to just copy the currently-used kernel config to the source directory.
 ```
 cd /opt/kernel/linux-source-4.18
 cp /boot/config-4.18.0-kali2-amd64 .config
 ```
 
-If you need to make some changes or dicide to reconfigure all things from scratch, just call **make menuconfig** command and inspect all the details.
+If you need to make some changes or decide to reconfigure all things from scratch, just call **make menuconfig** command and inspect all the details.
 Note: we can tweak a lot in this phase.
 
 ## Write Some Code
@@ -53,11 +53,11 @@ Add one line of code for test(fun), in file *init/main.c*, **start_kernel** func
 ```
 
 ## Build the Kernel
-Once configured, we can **make** the kernel. Rather than invoking **make deb-pkg** as the official doc suggested, we use **make bindeb-pkg** here, which will not generate debian source package, or invoke **make clean**.
+Once configured, we can **make** the kernel. Rather than invoking **make deb-pkg** as the official doc suggested, we use **make bindeb-pkg** here, which will not generate Debian source package, or invoke **make clean**.
 ```
 time make -j4 bindeb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d)
 ```
-After a while, we get folowing package in the parent directory
+After a while, we get following package in the parent directory
 ```
 linux-headers-4.18.10-custom_4.18.10-20181021_amd64.deb   # headers
 linux-image-4.18.10-custom_4.18.10-20181021_amd64.deb     # kernel image

@@ -10,13 +10,13 @@ categories: Linux
 ## Overview
 - What is Linux loadable kernel module(LKM)?
 
-A loadable kernel module (LKM) is a machanism for adding/removing code from Linux kernel **at run time**.
+A loadable kernel module (LKM) is a mechanism for adding/removing code from Linux kernel **at run time**.
 Many of device drivers are implemented through this way, otherwise the monolithic kernel would be too large.
 
 LKM communicates with user-space applications through system calls, and it can access almost all the objects/services of the kernel.
 LKM can be inserted to the monolithic kernel at any time -- usually at booting or running phase.
 
-Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don't need to recomplie the whole kernel nor reboot, and it's more shippable.
+Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don't need to recompile the whole kernel nor reboot, and it's more shippable.
 
 So, the easiest way to start kernel programming is to write a module - a piece of code that can be dynamically loaded into the kernel.
 
@@ -24,7 +24,7 @@ So, the easiest way to start kernel programming is to write a module - a piece o
 
 LKM is run in kernel space, which is quite different.
 
-First off, the code is always asynchronous, which means it doesn't execute sequetially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like `main()` and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interract with various kernel services, and externally provides system calls as its user-space `api`. 
+First off, the code is always asynchronous, which means it doesn't execute sequentially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like `main()` and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interact with various kernel services, and externally provides system calls as its user-space `api`. 
 
 Secondly, there's only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.
 
@@ -106,7 +106,7 @@ total 556
 -rw-r--r-- 1 root root      0 Oct 23 09:41 Module.symvers
 ```
 
-display module info
+Display module info
 ```
 root@kali:/opt/kernel-modules/hello# modinfo hello.ko
 filename:       /opt/kernel-modules/hello/hello.ko
@@ -140,11 +140,11 @@ Oct 23 09:52:02 kali kernel: [ 2677.482181] HELLO: Bye-bye, Brooke!
 ```
 Done!
 
-note: charp parm can even be Chinese.
+note: char parm can even be Chinese.
 
 ## Conclusions
 
-With this artical, we managed to complete our first yet very simple Linux loadable kernel module(LKM).
+With this article, we managed to complete our first yet very simple Linux loadable kernel module(LKM).
 
 We've got a broad view of how the LKMs work. And we should configure our own kernel modules, build and insert/remove them at runtime, and define/pass custom parameters to them.
 

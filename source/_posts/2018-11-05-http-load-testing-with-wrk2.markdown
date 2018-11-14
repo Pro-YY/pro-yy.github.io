@@ -9,7 +9,7 @@ categories: Network
 ## Overviews
 
 How to measure our server's performance?
-With this artical, we'll discuss and experiment with HTTP server benchmark.
+With this article, we'll discuss and experiment with HTTP server benchmark.
 
 Let's start to recap some of the key concept related:
 
@@ -28,14 +28,14 @@ Let's start to recap some of the key concept related:
 
 So, what does `load testing` really mean?
 
-In brief, it's to determine the maximum throughput (the highest RPS), under specified number of connection, with all response time satisfying the latancy target.
+In brief, it's to determine the maximum throughput (the highest RPS), under specified number of connection, with all response time satisfying the latency target.
 
 Thus, we can remark a server capability like this:
 > "Our server instance can achieve 20K RPS under 5K simultaneous connections with latency p99 at less than 200ms."
 
 ## What's wrk2
-[wrk2](https://github.com/giltene/wrk2) is an HTTP benchmakring cli tool, which is considered better than [ab](https://httpd.apache.org/docs/2.4/programs/ab.html) or [wrk](https://github.com/wg/wrk).
-With wrk2, we are able to generate some constant throughput load, and its latency detail is more accrate. As a command-line tool, it's quite convenient and fast.
+[wrk2](https://github.com/giltene/wrk2) is an HTTP benchmarking cli tool, which is considered better than [ab](https://httpd.apache.org/docs/2.4/programs/ab.html) or [wrk](https://github.com/wg/wrk).
+With wrk2, we are able to generate some constant throughput load, and its latency detail is more accurate. As a command-line tool, it's quite convenient and fast.
 
 - -d: duration, test time. Note that it has a 10 second calibration time, so this should be specified no shorter than 20s.
 - -t: threads num. Just set it to cpu cores.
@@ -59,10 +59,10 @@ And since our test machine has 2 cpu-threads, our command is like:
 ```
 ./wrk -t2 -c100 -d60 -R 18000 -L http://$HOST:$PORT/
 ```
-We iterate to execute the command, and increase the reqeust rate (-R argument) by 500 on each turn until we find the maximum RPS. The whole workflow can be explained as:
+We iterate to execute the command, and increase the request rate (-R argument) by 500 on each turn until we find the maximum RPS. The whole workflow can be explained as:
 ![](/images/http-load-testing-with-wrk2/hb_wf.svg)
 
-Then we go on test for a larger number of connections, until the latancy target is no longer satified or socket connection errors occur. And move to next server.
+Then we go on test for a larger number of connections, until the latency target is no longer satisfied or socket connection errors occur. And move to next server.
 
 ## Results Analysis
 Now, let's feed our output data to plot program with [matplotlib](https://matplotlib.org/3.0.0/), and finally get the whole picture below:

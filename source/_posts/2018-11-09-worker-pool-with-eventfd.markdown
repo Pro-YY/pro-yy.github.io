@@ -32,7 +32,7 @@ You won't wield the true power of eventfd, unless you monitor them with epoll (e
 So, let's get our hands dirty with an simple worker thread pool!
 
 ##  Worker Pool Design
-We adopt Producer/Consumer pattern for our worker thread pool, as it's the most common style of decoupling, acheiving the best scalability.
+We adopt Producer/Consumer pattern for our worker thread pool, as it's the most common style of decoupling, achieving the best scalability.
 By leveraging the asynchronous notification feature from the eventfd, our inter-thread communication sequence could be described as following:
 
 ![](/images/worker-pool-with-eventfd/eventfd_notify.svg)
