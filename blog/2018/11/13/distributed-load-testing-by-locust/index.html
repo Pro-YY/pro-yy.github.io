@@ -1,0 +1,455 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Distributed Load Testing by Locust - Brooke's Notes</title>
+  <meta name="author" content="BrookeYang(杨阳)">
+
+  
+  <meta name="description" content="Overview What is Distributed Load Testing? In my previous post http load testing with wrk2, we&rsquo;ve introduced some of the concepts of HTTP &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-127880289-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-9207933870527027",
+    enable_page_level_ads: true
+  });
+</script>
+
+
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!--
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/sun.png" width="40" height="40" />
+  <h1><a href="/">Brooke's Notes</a></h1>
+  
+    <h2>Experience, Record, Share.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.yangyang.cloud">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Distributed Load Testing by Locust</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2018-11-13T10:23:38+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>10:23 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Overview</h2>
+
+<h4>What is Distributed Load Testing?</h4>
+
+<p>In my previous post <em><a href="https://www.yangyang.cloud/blog/2018/11/05/http-load-testing-with-wrk2/">http load testing with wrk2</a></em>, we&rsquo;ve introduced some of the concepts of HTTP benchmarking. However that is not the only case, especially when the client is not as performant as the target server. More often, system developers use multiple clients (load testing clusters) to generate more loads. As shown with the picture:</p>
+
+<p><img src="/images/distributed-load-testing-by-locust/load_arch.jpg" alt="" /></p>
+
+<h4>Why locust?</h4>
+
+<p>There&rsquo;s lots of open-source aimed at distributed load testing, like:</p>
+
+<p><a href="https://github.com/locustio/locust">locust</a>
+<a href="https://github.com/gatling/gatling">gatling</a>
+<a href="https://github.com/shoreditch-ops/artillery">artillery</a>
+<a href="https://github.com/tsenart/vegeta">vegeta</a>
+<a href="https://github.com/processone/tsung">tsung</a>
+<a href="https://jmeter.apache.org/">jmeter</a></p>
+
+<p>While some of them are quite promising, in this post we choose locust, for it&rsquo;s one of the most popular in github and it&rsquo;s very easy to use and demo.</p>
+
+<h2>Simple local test</h2>
+
+<p>Next, let&rsquo;s start with a simple case to show how developer perform distributed load testing with locust.</p>
+
+<h3>example workflow</h3>
+
+<p>Install locust package</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt -y install python3-pip
+</span><span class='line'>pip3 install locustio</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Edit <em>locustfile.py</em>, the simplest one:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">HttpLocust</span><span class="p">,</span> <span class="n">TaskSet</span><span class="p">,</span> <span class="n">task</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">UserBehavior</span><span class="p">(</span><span class="n">TaskSet</span><span class="p">):</span>
+</span><span class='line'>    <span class="nd">@task</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">WebsiteUser</span><span class="p">(</span><span class="n">HttpLocust</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">task_set</span> <span class="o">=</span> <span class="n">UserBehavior</span>
+</span><span class='line'>    <span class="n">min_wait</span> <span class="o">=</span> <span class="mi">5000</span>
+</span><span class='line'>    <span class="n">max_wait</span> <span class="o">=</span> <span class="mi">9000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In fact, locust supports user scenarios by this kind of python script, which is very customizable.</p>
+
+<p>Start master</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">locust</span> <span class="o">--</span><span class="n">host</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">TEST_TARGET_HOST</span><span class="p">:</span><span class="n">PORT</span> <span class="o">--</span><span class="n">master</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Start slave</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">locust</span> <span class="o">--</span><span class="n">slave</span> <span class="o">--</span><span class="n">master</span><span class="o">-</span><span class="n">host</span><span class="o">=</span><span class="n">MASTER_HOST</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, go to master web-ui (default port on 8089), and start spawning locust!</p>
+
+<p><img src="/images/distributed-load-testing-by-locust/1.PNG" alt="" /></p>
+
+<p>Before launching, we should specify our expected number of users, and the hatch rate.</p>
+
+<p><img src="/images/distributed-load-testing-by-locust/2.PNG" alt="" /></p>
+
+<p>When testing, locust web-ui provides real-time statistics for us, including RPS, Response Time.</p>
+
+<ul>
+<li>Trouble shooting</li>
+</ul>
+
+
+<p>You&rsquo;ll get <code>too open files</code> issue if you forget to set it with <code>ulimit</code> command.
+<img src="/images/distributed-load-testing-by-locust/4.PNG" alt="" />
+<img src="/images/distributed-load-testing-by-locust/5.PNG" alt="" /></p>
+
+<h3>problems with locust</h3>
+
+<p>Python is not a fast language, the problem is even exacerbated when it comes to the IO-intensive application. Fortunately, locust is designed and implemented to be well scaled out, and the problem can be ameliorated a lot.</p>
+
+<h2>AutoScaling cluster on cloud</h2>
+
+<p>For deploying locust testing on cloud, the most suitable product is cluster management service, no matter whether it&rsquo;s the cluster for virtual machine (AutoScaling), or the cluster for container (Kubernetes Service). In this post, we conduct our load testing with AutoScaling of TencentCloud.</p>
+
+<p>First, we build our locust image in which the locust package is installed and locust file is prepared. Second, we create our testing cluster, namely an AutoScalingGroup of our test LaunchConfiguration, which is an instance template associated with the locust image we just build. Additionally, we need to make sure that our testing cluster and target host are in the same VirtualPrivateCloud, so that they can access each other within the private network and cost little for network bandwidth. And setup the External IP as well as the Security groups for locust master node, as we&rsquo;ll access its port 8089 for the web-ui.</p>
+
+<p>Now that we&rsquo;ve set up our load testing cluster, we could tune its Expected Instance Number on our demand.</p>
+
+<p><img src="/images/distributed-load-testing-by-locust/6.PNG" alt="" /></p>
+
+<ul>
+<li>When to add client?</li>
+</ul>
+
+
+<p>Usually, as long as the final RPS increases proportionally with the number of clients, we should consider add 1 more client. In our example, 6 clients proved to be just enough.</p>
+
+<ul>
+<li>How to inspect the chart to find the best performance?</li>
+</ul>
+
+
+<p>When the QoS is no longer satisfied, there comes the point. As the above chart shows, the p95 is longer than 1s when the number of concurrent user reaches to 22K, and the RPS is 2830 by that time. That&rsquo;s it.</p>
+
+<h2>Conclusions</h2>
+
+<p>By this post, we&rsquo;ve completed an example of distributed load testing. Although there&rsquo;s a plenty of choice of testing tools, the locust is such an easy-to-use tool to help us understand the basic concepts. Thanks to the cloud-managed service like AutoScaling, we can manage our workload cluster with ease. And happy benchmarking!</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://locust.io/">locust.io official page</a></li>
+<li><a href="https://cloud.tencent.com/product/as">TencentCloud AutoScaling</a></li>
+<li><a href="https://cloud.google.com/solutions/distributed-load-testing-using-kubernetes">distributed-load-testing-using-kubernetes</a></li>
+<li><a href="https://medium.com/@vigneshwar.ravimurugan/scriptable-and-distributed-load-testing-with-locust-in-azure-kubernetes-service-63d04c083058">Scriptable and Distributed Load Testing with Locust in Azure Kubernetes Service</a></li>
+<li><a href="https://blog.realkinetic.com/load-testing-with-locust-part-1-174040afdf23">Load Testing with Locust (Part 1)</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing">an introduction to load testing</a></li>
+<li><a href="https://blog.loadimpact.com/open-source-load-testing-tool-review">open source load testing tool review</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">BrookeYang(杨阳)</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2018-11-13T10:23:38+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2018</span></span> <span class='time'>10:23 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cloud/'>cloud</a>, <a class='category' href='/blog/categories/network/'>network</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/11/09/worker-pool-with-eventfd/" title="Previous Post: worker pool with eventfd">&laquo; worker pool with eventfd</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>I'm Brooke, a software developer interested in system programming as well as web service design.</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/11/13/distributed-load-testing-by-locust/">Distributed Load Testing by Locust</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/09/worker-pool-with-eventfd/">Worker Pool With Eventfd</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/05/http-load-testing-with-wrk2/">Http Load Testing With Wrk2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/23/building-linux-kernel-module/">Building Linux Kernel Module</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/22/compiling-kernel-with-kali-linux/">Compiling Kernel With Kali Linux</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] FFMPEG: Libmp3lame Not Found</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/06/28/nodejs-circular-dependencies/">Nodejs Circular Dependencies</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 145.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
+</section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="2966057111"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-2 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="7019361500"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-0 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="4090602374"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+  Copyright &copy; 2018 - BrookeYang(杨阳)
+  <!-- <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -->
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yangyangcloud';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

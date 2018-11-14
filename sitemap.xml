@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>https://www.yangyang.cloud/blog/2018/11/13/distributed-load-testing-by-locust/</loc>
+<lastmod>2018-11-13T10:23:38+08:00</lastmod>
+</url>
+<url>
 <loc>https://www.yangyang.cloud/blog/2018/11/09/worker-pool-with-eventfd/</loc>
 <lastmod>2018-11-09T22:41:08+08:00</lastmod>
 </url>
@@ -93,5 +97,8 @@
 </url>
 <url>
 <loc>https://www.yangyang.cloud/blog/categories/linux/</loc>
+</url>
+<url>
+<loc>https://www.yangyang.cloud/blog/categories/cloud/</loc>
 </url>
 </urlset>

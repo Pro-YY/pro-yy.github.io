@@ -9,8 +9,7 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="为什么一定要持久化存储会话信息 如果会话信息仅仅存储在内存&hellip; 服务器重启，用户将会登出
-无法在多个node进程(或集群环境)中共享会话 所以，会话(无论是HTTP会话还是Web-Socket会话)都需要在服务器端持久化存储在数据库中，如Redis/Mongo。 环境： Express &hellip;">
+  <meta name="description" content="Overview socks5 Socket Secure (SOCKS) is an Internet protocol that routes network packets between a client and server through a proxy server. SOCKS5 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,6 +92,162 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/29/shadowsocks-tutorial/">Shadowsocks Tutorial</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-29T19:37:13+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>7:37 pm</span></time>
+        
+           | <a href="/blog/2015/07/29/shadowsocks-tutorial/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2015/07/29/shadowsocks-tutorial/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Overview</h2>
+
+<h3>socks5</h3>
+
+<p>Socket Secure (SOCKS) is an Internet protocol that routes network packets between a client and server through a proxy server. SOCKS5 additionally provides authentication so only authorized users may access a server.</p>
+
+<p>Practically, a SOCKS server proxies TCP connections to an arbitrary IP address, and provides a means for UDP packets to be forwarded.SOCKS operates at a lower level than HTTP proxying: SOCKS uses a handshake protocol to inform the proxy software about the connection that the client is trying to make, and then acts as transparently as possible. SOCKS proxies can also forward UDP traffic and work in reverse.</p>
+
+<h3>shadowsocks</h3>
+
+<p><a href="https://github.com/shadowsocks/shadowsocks">Shadowsocks</a> is a fast tunnel proxy that can help bypass firewalls.</p>
+
+<h3>test environment</h3>
+
+<p>Remote VPS OS: Ubuntu-14.04 Server VPS on DigitalOcean</p>
+
+<p>Local Client OS: Ubuntu-14.04 Desktop</p>
+
+<h2>Installation</h2>
+
+<h3>install package</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get install python-pip
+</span><span class='line'>sudo pip install shadowsocks</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>remote server</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssserver -k PASSWORD -d start</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will run shadowsocks remote server listening at <strong>0.0.0.0:8388</strong></p>
+
+<h3>local server</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sslocal -s VPS -k PASSWORD</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will run shadowsocks local server listening at <strong>127.0.0.1:1080</strong></p>
+
+<h2>Client Configuration</h2>
+
+<h3>Web Browser</h3>
+
+<p>Thanks for proxy setting extension like <a href="http://getfoxyproxy.org/">FoxyProxy</a> in Firefox, <a href="https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif">SwitchyOmega</a> in Chrome, socks proxy tunnel can be easily configured.</p>
+
+<p>Choose <strong>socks v5</strong> protocal at localhost:1080, and get it work.</p>
+
+<h3>Curl</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost https://www.google.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that we specify protocal as <strong>socks5h</strong> instead of socks5, which means we use the specified SOCKS5 proxy, and let the proxy resolve the host name, otherwise it may not resolve hostname. And port 1080 is by default.</p>
+
+<h3>Nodejs Request</h3>
+
+<p><a href="https://www.npmjs.com/package/request">request</a> utility doesn&rsquo;t support socks proxy by default, so we need <a href="https://www.npmjs.com/package/socks5-http-client">socks5-http-client</a> and <a href="https://www.npmjs.com/package/socks5-https-client">socks5-https-client</a> to create agent.</p>
+
+<figure class='code'><figcaption><span>socks-proxy.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">request</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">socks5HttpAgent</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;socks5-http-client/lib/Agent&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">socks5HttpsAgent</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;socks5-https-client/lib/Agent&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">urlString</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">url</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">urlString</span><span class="p">);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">agentClass</span> <span class="o">=</span> <span class="p">(</span><span class="nx">url</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">===</span> <span class="s1">&#39;https:&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">socks5HttpsAgent</span> <span class="o">:</span> <span class="nx">socks5HttpAgent</span><span class="p">;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">agentOptions</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">socksHost</span><span class="o">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="c1">// defaults to localhost</span>
+</span><span class='line'>  <span class="nx">socksPort</span><span class="o">:</span> <span class="mi">1080</span>         <span class="c1">// defaults to 1080</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">uri</span><span class="o">:</span> <span class="nx">url</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">agentClass</span><span class="o">:</span> <span class="nx">agentClass</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">agentOptions</span><span class="o">:</span> <span class="nx">agentOptions</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;GET&#39;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">request</span><span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">statusCode</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, test it.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>node socks-proxy.js http://www.google.com
+</span><span class='line'>node socks-proxy.js https://www.google.com</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -503,6 +658,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/11/13/distributed-load-testing-by-locust/">Distributed Load Testing by Locust</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2018/11/09/worker-pool-with-eventfd/">Worker Pool With Eventfd</a>
       </li>
     
@@ -538,15 +697,11 @@
         <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2015/07/29/shadowsocks-tutorial/">Shadowsocks Tutorial</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Tag Cloud</h1>
-  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 120.0%'>blog</a> <a href='/blog/categories/docker' style='font-size: 120.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 120.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 120.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 140.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 160.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 120.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 120.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 120.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 120.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 120.0%'>ssh</a> </span>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 145.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
 </section>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- text-1 -->
