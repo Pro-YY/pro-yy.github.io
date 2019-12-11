@@ -157,6 +157,10 @@ static void *producer_routine_spike(void *data) {
 Note that you need to be root.
 ```
 ulimit -n 1048576
+
+# 1048576 is the default maximum for open files, as `/proc/sys/fs/nr_open` shows.
+# To make it larger, you need to tweak kernel settings like this (which is beyond our scope)
+# sysctl -w fs.nr_open=10485760
 ```
 Since the info of stdout is so much that we redirect the stdout to file *log*.
 ![](/images/worker-pool-with-eventfd/eventfd_worker_execution_spike.gif)

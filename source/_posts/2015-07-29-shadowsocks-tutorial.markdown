@@ -60,7 +60,7 @@ Note that we specify protocal as **socks5h** instead of socks5, which means we u
 
 [request](https://www.npmjs.com/package/request) utility doesn't support socks proxy by default, so we need [socks5-http-client](https://www.npmjs.com/package/socks5-http-client) and [socks5-https-client](https://www.npmjs.com/package/socks5-https-client) to create agent.
 
-{% codeblock lang:javascript socks-proxy.js %}
+```
 var request = require('request');
 var url = require('url');
 var socks5HttpAgent = require('socks5-http-client/lib/Agent');
@@ -86,7 +86,7 @@ request(options, function(err, res, body) {
     console.log(body);
   }
 });
-{% endcodeblock %}
+```
 
 Finally, test it.
 ```
