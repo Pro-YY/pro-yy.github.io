@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Javascript | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/javascript/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2018-11-14T16:58:04+08:00</updated>
+  <updated>2019-12-11T16:50:07+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -293,100 +293,57 @@ And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em
 </ul>
 
 
-<p><figure class='code'><figcaption><span>app.js </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">http</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">http</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">socketio</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">socket</span><span class="p">.</span><span class="nx">io</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">session</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">express</span><span class="o">-</span><span class="nx">session</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>           <span class="c1">// 会话支持</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">passport</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">passport</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>                 <span class="c1">// 身份认证，依赖express-session</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">RedisStore</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">connect</span><span class="o">-</span><span class="nx">redis</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;)(</span><span class="nx">session</span><span class="p">);</span> <span class="c1">// redis存储，用于持久化会话</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">RedisAdapter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">socket</span><span class="p">.</span><span class="nx">io</span><span class="o">-</span><span class="nx">redis</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>      <span class="c1">// 存储web-socket的连接</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">mongoose</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">mongoose</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
-</span><span class='line'><span class="c1">// &amp;hellip;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Server</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">sio</span> <span class="o">=</span> <span class="nx">socketio</span><span class="p">(</span><span class="nx">server</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure></p>
+<pre><code>var http = require('http');
+var socketio = require('socket.io');
+var session = require('express-session');           // 会话支持
+var passport = require('passport');                 // 身份认证，依赖express-session
+var RedisStore = require('connect-redis')(session); // redis存储，用于持久化会话
+var RedisAdapter = require('socket.io-redis');      // 存储web-socket的连接
+var mongoose = require('mongoose');
+// ...
+var app = express();
+var server = http.Server(app);
+var sio = socketio(server);
+</code></pre>
 
 <p>配置Redis会话存储HTTP会话
-<figure class='code'><figcaption><span>app.js </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">sessionMiddleware</span> <span class="o">=</span> <span class="nx">session</span><span class="p">({</span>
-</span><span class='line'>  <span class="nx">name</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">XXX</span><span class="o">:</span><span class="nx">sess</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span>
-</span><span class='line'>  <span class="nx">secret</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">XXX</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span>
-</span><span class='line'>  <span class="nx">proxy</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">resave</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">store</span><span class="o">:</span> <span class="k">new</span> <span class="nx">RedisStore</span><span class="p">(),</span>
-</span><span class='line'>  <span class="nx">saveUninitialized</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">cookie</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="c1">//secure: true, // only https</span>
-</span><span class='line'>    <span class="nx">maxAge</span><span class="o">:</span> <span class="mi">7</span><span class="o">&lt;</span><span class="nx">em</span><span class="o">&gt;</span><span class="mi">24</span><span class="o">&lt;</span><span class="err">/em&gt;60&lt;em&gt;60&lt;/em&gt;1000 // 1 week</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">});</span>
-</span><span class='line'><span class="c1">// 应用会话存储中间件</span>
-</span><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">sessionMiddleware</span><span class="p">);</span>
-</span><span class='line'><span class="c1">// passport登录认证</span>
-</span><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">passport</span><span class="p">.</span><span class="nx">initialize</span><span class="p">());</span>
-</span><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">passport</span><span class="p">.</span><span class="nx">session</span><span class="p">());</span>
-</span></code></pre></td></tr></table></div></figure></p>
+<code>
+var sessionMiddleware = session({
+  name: 'XXX:sess',
+  secret: 'XXX',
+  proxy: true,
+  resave: false,
+  store: new RedisStore(),
+  saveUninitialized: false,
+  cookie: {
+    //secure: true, // only https
+    maxAge: 7*24*60*60*1000 // 1 week
+  }
+});
+// 应用会话存储中间件
+app.use(sessionMiddleware);
+// passport登录认证
+app.use(passport.initialize());
+app.use(passport.session());
+</code></p>
 
 <p>配置Redis会话存储Web-Socket会话
-<figure class='code'><figcaption><span>app.js </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">sio</span><span class="p">.</span><span class="nx">adapter</span><span class="p">(</span><span class="nx">RedisAdapter</span><span class="p">({</span><span class="nx">host</span><span class="o">:</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">localhost</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span> <span class="nx">port</span><span class="o">:</span> <span class="mi">6379</span><span class="p">}));</span>
-</span><span class='line'><span class="c1">// 为socket server添加redis存储的中间件</span>
-</span><span class='line'><span class="nx">sio</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">socket</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">sessionMiddleware</span><span class="p">(</span><span class="nx">socket</span><span class="p">.</span><span class="nx">request</span><span class="p">,</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">);</span>
-</span><span class='line'><span class="p">});</span>
-</span><span class='line'><span class="c1">// 对未登录的用户禁用socket支持</span>
-</span><span class='line'><span class="nx">sio</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">socket</span><span class="p">,</span> <span class="nx">next</span><span class="p">){</span>
-</span><span class='line'>  <span class="kd">var</span> <span class="nx">passport</span> <span class="o">=</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">passport</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">passport</span> <span class="o">||</span> <span class="o">!</span><span class="nx">passport</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">logger</span><span class="p">.</span><span class="nx">debug</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">no</span> <span class="nx">socket</span> <span class="nx">support</span> <span class="nx">without</span> <span class="nx">login</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
-</span><span class='line'>    <span class="nx">next</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">Authentication</span> <span class="nx">error</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;));</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  <span class="k">else</span> <span class="nx">next</span><span class="p">();</span>
-</span><span class='line'><span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure></p>
+<code>
+sio.adapter(RedisAdapter({host: 'localhost', port: 6379}));
+// 为socket server添加redis存储的中间件
+sio.use(function(socket, next) {
+  sessionMiddleware(socket.request, socket.request.res, next);
+});
+// 对未登录的用户禁用socket支持
+sio.use(function(socket, next){
+  var passport = socket.request.session.passport;
+  if (!passport || !passport.user) {
+    logger.debug('no socket support without login');
+    next(new Error('Authentication error'));
+  }
+  else next();
+});
+</code></p>
 
 <h2>Nginx配置支持负载均衡</h2>
 

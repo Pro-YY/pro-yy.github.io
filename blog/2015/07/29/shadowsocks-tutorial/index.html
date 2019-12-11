@@ -178,8 +178,7 @@
 
 <p><a href="https://www.npmjs.com/package/request">request</a> utility doesn&rsquo;t support socks proxy by default, so we need <a href="https://www.npmjs.com/package/socks5-http-client">socks5-http-client</a> and <a href="https://www.npmjs.com/package/socks5-https-client">socks5-https-client</a> to create agent.</p>
 
-<figure class='code'><figcaption><span>socks-proxy.js </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -204,32 +203,31 @@
 <span class='line-number'>23</span>
 <span class='line-number'>24</span>
 <span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">request</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">socks5HttpAgent</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;socks5-http-client/lib/Agent&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">socks5HttpsAgent</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;socks5-https-client/lib/Agent&#39;</span><span class="p">);</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var request = require('request');
+</span><span class='line'>var url = require('url');
+</span><span class='line'>var socks5HttpAgent = require('socks5-http-client/lib/Agent');
+</span><span class='line'>var socks5HttpsAgent = require('socks5-https-client/lib/Agent');
 </span><span class='line'>
-</span><span class='line'><span class="kd">var</span> <span class="nx">urlString</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">url</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">urlString</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">agentClass</span> <span class="o">=</span> <span class="p">(</span><span class="nx">url</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">===</span> <span class="s1">&#39;https:&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">socks5HttpsAgent</span> <span class="o">:</span> <span class="nx">socks5HttpAgent</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">agentOptions</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">socksHost</span><span class="o">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="c1">// defaults to localhost</span>
-</span><span class='line'>  <span class="nx">socksPort</span><span class="o">:</span> <span class="mi">1080</span>         <span class="c1">// defaults to 1080</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">uri</span><span class="o">:</span> <span class="nx">url</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">agentClass</span><span class="o">:</span> <span class="nx">agentClass</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">agentOptions</span><span class="o">:</span> <span class="nx">agentOptions</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;GET&#39;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="nx">request</span><span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">statusCode</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>var urlString = process.argv[2];
+</span><span class='line'>var url = url.parse(urlString);
+</span><span class='line'>var agentClass = (url.protocol === 'https:') ? socks5HttpsAgent : socks5HttpAgent;
+</span><span class='line'>var agentOptions = {
+</span><span class='line'>  socksHost: 'localhost', // defaults to localhost
+</span><span class='line'>  socksPort: 1080         // defaults to 1080
+</span><span class='line'>};
+</span><span class='line'>var options = {
+</span><span class='line'>  uri: url,
+</span><span class='line'>  agentClass: agentClass,
+</span><span class='line'>  agentOptions: agentOptions,
+</span><span class='line'>  method: 'GET'
+</span><span class='line'>};
+</span><span class='line'>request(options, function(err, res, body) {
+</span><span class='line'>  if (err) console.log(err.message);
+</span><span class='line'>  else {
+</span><span class='line'>    console.log(res.statusCode);
+</span><span class='line'>    console.log(body);
+</span><span class='line'>  }
+</span><span class='line'>});</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Finally, test it.</p>
@@ -394,7 +392,7 @@
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-  Copyright &copy; 2018 - BrookeYang(杨阳)
+  Copyright &copy; 2019 - BrookeYang(杨阳)
   <!-- <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -->
 </p>
 
