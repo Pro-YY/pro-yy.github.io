@@ -1,0 +1,815 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Linux Seccomp Filters - Brooke's Notes</title>
+  <meta name="author" content="BrookeYang(杨阳)">
+
+  
+  <meta name="description" content="Overview Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-127880289-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-9207933870527027",
+    enable_page_level_ads: true
+  });
+</script>
+
+
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!--
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/sun.png" width="40" height="40" />
+  <h1><a href="/">Brooke's Notes</a></h1>
+  
+    <h2>Experience, Record, Share.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.yangyang.cloud">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Linux Seccomp Filters</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2019-12-12T22:20:45+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>10:20 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Overview</h2>
+
+<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, OpenSSH&hellip;) for resource isolation purposes.</p>
+
+<h2>Basic example</h2>
+
+<p>Question: How to block specified syscalls?</p>
+
+<p>First off, we need header files to use libseccomp2. Get the package installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt install libseccomp-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The following code (function <em>filter_syscalls()</em>) shows how we use seccomp in common. It filters the <code>fchmodat</code> and <code>symlinkat</code> syscalls. And also blocks <code>write</code> syscall, if the write count argument exceeds 2048.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// ... other headers and macros ommited
+</span><span class='line'>#include &lt;seccomp.h&gt;
+</span><span class='line'>
+</span><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>    scmp_filter_ctx ctx;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls...");
+</span><span class='line'>    ctx = seccomp_init(SCMP_ACT_ALLOW);
+</span><span class='line'>    if (!ctx) { log_error("error seccomp ctx init"); return ret; }
+</span><span class='line'>
+</span><span class='line'>    // prohibits specified syscall
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(symlinkat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: symlinkat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    // limit syscall arguments
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(write), 1,
+</span><span class='line'>            SCMP_A2_64(SCMP_CMP_GT, 2048));
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: write"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_load(ctx);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
+</span><span class='line'>
+</span><span class='line'>out:
+</span><span class='line'>    seccomp_release(ctx);
+</span><span class='line'>    if (ret != 0) return -1;
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>extern char **environ;
+</span><span class='line'>
+</span><span class='line'>int main(int argc, char *argv[]) {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>
+</span><span class='line'>    ret = filter_syscalls();
+</span><span class='line'>    if (ret != 0) { log_error("filter syscall failed"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    char *prog = "/bin/bash";
+</span><span class='line'>    ret = execve(prog, (char *[]){prog, 0}, environ);
+</span><span class='line'>    log_debug("%d", ret);
+</span><span class='line'>    if (ret &lt; 0) { log_error("exec failed"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    return EXIT_SUCCESS;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For all source code &amp; detail, check <a href="https://github.com/Pro-YY/seccomp-demo">here</a>.</p>
+
+<p>Note: compile the above with <code>-lseccomp</code> flags, and run it when we get our secured shell.</p>
+
+<p>Then, play with it with the execed bash prompt:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp && ./a.out
+</span><span class='line'>[DEBUG]seccomp_basic.c: 32: filtering syscalls...
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ chmod -x a.out    # test fchmodat
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ ln -s a.out       # test symlinkat
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ echo "hello"      # test write
+</span><span class='line'>hello
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat seccomp_basic.c   # test write
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat /proc/$$/status
+</span><span class='line'>...
+</span><span class='line'>NoNewPrivs:     1     # cannot be applied to child processes with greater privileges
+</span><span class='line'>Seccomp:        2     # Seccomp filter mode
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ exit  # Don't forget quit bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As expected, the process (subprocess) invoke filtered syscall get SIGSYS, and core-dumped.</p>
+
+<h2>Export filter&rsquo;s bpf</h2>
+
+<p>Underneath, seccomp performs filtering by using bpf, which we&rsquo;ll explain later. The libseccomp provide useful funcitons to generate and output the corresponding bpf as well as pfc (Pseudo Filter Code). Thus we can take a more close look.</p>
+
+<p>For a trival case, we only filter the <code>fchmodat</code> syscall, and export bpf:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>    scmp_filter_ctx ctx;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls...");
+</span><span class='line'>    ctx = seccomp_init(SCMP_ACT_ALLOW);
+</span><span class='line'>    if (!ctx) { log_error("error seccomp ctx init"); return ret; }
+</span><span class='line'>
+</span><span class='line'>    // prohibits specified syscall
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_load(ctx);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    // export bpf
+</span><span class='line'>    int bpf_fd = open("seccomp_filter.bpf", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+</span><span class='line'>    if (bpf_fd == -1) { log_error("error open"); goto out; }
+</span><span class='line'>    ret = seccomp_export_bpf(ctx, bpf_fd);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error export"); goto out; }
+</span><span class='line'>    close(bpf_fd);
+</span><span class='line'>
+</span><span class='line'>    // export pfc
+</span><span class='line'>    int pfc_fd = open("seccomp_filter.pfc", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+</span><span class='line'>    if (pfc_fd == -1) { log_error("error open"); goto out; }
+</span><span class='line'>    ret = seccomp_export_pfc(ctx, pfc_fd);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error export"); goto out; }
+</span><span class='line'>    close(pfc_fd);
+</span><span class='line'>
+</span><span class='line'>out:
+</span><span class='line'>    seccomp_release(ctx);
+</span><span class='line'>    if (ret != 0) return -1;
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We got 2 files, bpf and pfc:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ hd seccomp_filter.bpf      # hexdump bpf file
+</span><span class='line'>00000000  20 00 00 00 04 00 00 00  15 00 00 05 3e 00 00 c0  | ...........&gt;...|
+</span><span class='line'>00000010  20 00 00 00 00 00 00 00  35 00 00 01 00 00 00 40  | .......5......@|
+</span><span class='line'>00000020  15 00 00 02 ff ff ff ff  15 00 01 00 0c 01 00 00  |................|
+</span><span class='line'>00000030  06 00 00 00 00 00 ff 7f  06 00 00 00 00 00 00 00  |................|
+</span><span class='line'>00000040</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cat seccomp_filter.pfc
+</span><span class='line'>#
+</span><span class='line'># pseudo filter code start
+</span><span class='line'>#
+</span><span class='line'># filter for arch x86_64 (3221225534)
+</span><span class='line'>if ($arch == 3221225534)
+</span><span class='line'>  # filter for syscall "fchmodat" (268) [priority: 65535]
+</span><span class='line'>    if ($syscall == 268)
+</span><span class='line'>        action KILL;
+</span><span class='line'>          # default action
+</span><span class='line'>            action ALLOW;
+</span><span class='line'># invalid architecture action
+</span><span class='line'>action KILL;
+</span><span class='line'>#
+</span><span class='line'># pseudo filter code end
+</span><span class='line'>#</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems quite straightforward. And there&rsquo;s an awesome tool: <a href="https://github.com/david942j/seccomp-toolsj">seccomp-tools</a> which can disassembles <em>seccomp_filter.bpf</em> above:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> line  CODE  JT   JF      K
+</span><span class='line'> 0000: 0x20 0x00 0x00 0x00000004  A = arch
+</span><span class='line'> 0001: 0x15 0x00 0x05 0xc000003e  if (A != ARCH_X86_64) goto 0007
+</span><span class='line'> 0002: 0x20 0x00 0x00 0x00000000  A = sys_number
+</span><span class='line'> 0003: 0x35 0x00 0x01 0x40000000  if (A &lt; 0x40000000) goto 0005
+</span><span class='line'> 0004: 0x15 0x00 0x02 0xffffffff  if (A != 0xffffffff) goto 0007
+</span><span class='line'> 0005: 0x15 0x01 0x00 0x0000010c  if (A == fchmodat) goto 0007
+</span><span class='line'> 0006: 0x06 0x00 0x00 0x7fff0000  return ALLOW
+</span><span class='line'> 0007: 0x06 0x00 0x00 0x00000000  return KILL</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Seccomp-BPF</h2>
+
+<p>Seccomp-BPF is just an extension of cBPF (classical Berkeley Packet Filter, Note: not eBPF).
+The <strong>tiny</strong>  bpf program runs on a specific VM in kernel, with a rather limited registers and a more reduced instruction set.</p>
+
+<p>BPF code definitions in <em>/usr/include/linux/filter.h</em>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct sock_filter {    /* Filter block */
+</span><span class='line'>        __u16   code;   /* Actual filter code */
+</span><span class='line'>        __u8    jt;     /* Jump true */
+</span><span class='line'>        __u8    jf;     /* Jump false */
+</span><span class='line'>        __u32   k;      /* Generic multiuse field */
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can of course, directly apply seccomp-bpf binary code with prctl(), which wraps the <code>seccomp</code> syscall,
+to gain more fine-graind control of our bpf. But in most casses, those libseccomp wrappers, like <code>seccomp_rule_add()</code> just works.
+The binary code is the same as the just hexdumped file for filtering <code>fchmodat</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls with bpf...");
+</span><span class='line'>
+</span><span class='line'>    struct sock_filter code[] = {
+</span><span class='line'>        /* op,   jt,   jf,     k    */
+</span><span class='line'>        {0x20, 0x00, 0x00, 0x00000004},
+</span><span class='line'>        {0x15, 0x00, 0x05, 0xc000003e},
+</span><span class='line'>        {0x20, 0x00, 0x00, 0x00000000},
+</span><span class='line'>        {0x35, 0x00, 0x01, 0x40000000},
+</span><span class='line'>        {0x15, 0x00, 0x02, 0xffffffff},
+</span><span class='line'>        {0x15, 0x01, 0x00, 0x0000010c}, // 268 fchmodat
+</span><span class='line'>        {0x06, 0x00, 0x00, 0x7fff0000},
+</span><span class='line'>        {0x06, 0x00, 0x00, 0x00000000},
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>    struct sock_fprog bpf = {
+</span><span class='line'>        .len = ARRAY_SIZE(code),
+</span><span class='line'>        .filter = code,
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>    ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error prctl set no new privs"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &bpf);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error prctl set seccomp filter"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Performance Overhead</h2>
+
+<p>There is no such thing as a free lunch, so as the seccomp-bpf. After all,it is a hooking program, that runs each time whever and whatever a syscall invoked.
+We benchmarked 3 senarios: no filter, filter that blocks 1 syscall, and filter that blocks 100 syscall (a more sophisticated bpf).
+And we measured the time elpased during 10million <code>write()</code> syscall, and plotted as following:</p>
+
+<div id="hc_test" style="min-width: 310px; height: 400px; margin: 0 auto">hc_test</div>
+
+
+
+
+<script src="https://code.highcharts.com/highcharts.src.js"></script>
+
+
+<script type="text/javascript">
+
+function draw() {
+Highcharts.chart('hc_test', {
+    chart: {
+      type: 'column'
+    },
+
+    title: {
+        text: ''//
+    },
+
+    subtitle: {
+        text: ''//
+    },
+
+    xAxis: {
+        categories: ['without filter', '1-filter bpf', '100-filter pbf']
+    },
+    yAxis: {
+        title: {
+            text: 'time (seconds)',
+        },
+        max: 5,
+        min: 0,
+    },
+
+    tooltip: {
+        formatter: function () {
+            return '<b>' + this.x + '</b><br/>' +
+                this.series.name + ': ' + this.y + '<br/>';
+        }
+    },
+plotOptions: {
+        bar: {
+            dataLabels: {
+                enabled: true
+            }
+        }
+    },
+
+    series: [{
+        type: 'line',
+        name: '256 write real',
+        data: [3.991, 4.157, 4.506]
+    }, {
+        type: 'line',
+        name: '2048 write real',
+        data: [3.959, 4.162, 4.502]
+    }, {
+        type: 'line',
+        name: '256 write sys',
+        data: [2.763, 3.011, 3.397]
+    }, {
+        type: 'line',
+        name: '2048 write sys',
+        data: [2.797, 3.059, 3.321]
+    }]
+
+});
+
+}
+
+draw();
+</script>
+
+
+<p>As it shows, the overhead is around 5%~10%, and will be even more with the larger bpf code.</p>
+
+<h2>Summary</h2>
+
+<p>In this post, we managed to filter syscalls  with several seccomp-related facilities, inspect the seccomp-bpf code, and understand its costs.
+This would be helpful especially if you&rsquo;re implementing your sandbox-like applications that need security concerns.
+Wish you enjoy hacking!</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://man7.org/linux/man-pages/man2/seccomp.2.html">Seccomp(2) Linux mannual page</a></li>
+<li><a href="http://man7.org/linux/man-pages/man3/seccomp_init.3.html">seccomp_init(3) Linux mannual page</a></li>
+<li><a href="https://www.kernel.org/doc/html/v4.16/userspace-api/seccomp_filter.html">Kernel document: seccomp filter</a></li>
+<li><a href="https://lwn.net/Articles/656307/">A seccomp overview</a></li>
+<li><a href="http://man7.org/conf/lpc2015/limiting_kernel_attack_surface_with_seccomp-LPC_2015-Kerrisk.pdf">Using seccomp to limit the kernel attack surface</a></li>
+<li><a href="https://github.com/seccomp/libseccomp">libseccomp source</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">BrookeYang(杨阳)</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2019-12-12T22:20:45+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>10:20 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/11/13/distributed-load-testing-by-locust/" title="Previous Post: distributed load testing by locust">&laquo; distributed load testing by locust</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>I'm Brooke, a software developer interested in system programming as well as web service design.</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/13/distributed-load-testing-by-locust/">Distributed Load Testing by Locust</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/09/worker-pool-with-eventfd/">Worker Pool With Eventfd</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/05/http-load-testing-with-wrk2/">Http Load Testing With Wrk2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/23/building-linux-kernel-module/">Building Linux Kernel Module</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/22/compiling-kernel-with-kali-linux/">Compiling Kernel With Kali Linux</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] FFMPEG: Libmp3lame Not Found</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/06/28/nodejs-circular-dependencies/">Nodejs Circular Dependencies</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 160.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
+</section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="2966057111"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-2 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="7019361500"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-0 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="4090602374"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+  Copyright &copy; 2019 - BrookeYang(杨阳)
+  <!-- <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -->
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yangyangcloud';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

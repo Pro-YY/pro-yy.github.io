@@ -9,7 +9,7 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overview What is Distributed Load Testing? In my previous post http load testing with wrk2, we&rsquo;ve introduced some of the concepts of HTTP &hellip;">
+  <meta name="description" content="Overview Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -92,6 +92,538 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2019-12-12T22:20:45+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2019</span></span> <span class='time'>10:20 pm</span></time>
+        
+           | <a href="/blog/2019/12/12/linux-seccomp-filters/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Overview</h2>
+
+<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, OpenSSH&hellip;) for resource isolation purposes.</p>
+
+<h2>Basic example</h2>
+
+<p>Question: How to block specified syscalls?</p>
+
+<p>First off, we need header files to use libseccomp2. Get the package installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt install libseccomp-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The following code (function <em>filter_syscalls()</em>) shows how we use seccomp in common. It filters the <code>fchmodat</code> and <code>symlinkat</code> syscalls. And also blocks <code>write</code> syscall, if the write count argument exceeds 2048.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// ... other headers and macros ommited
+</span><span class='line'>#include &lt;seccomp.h&gt;
+</span><span class='line'>
+</span><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>    scmp_filter_ctx ctx;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls...");
+</span><span class='line'>    ctx = seccomp_init(SCMP_ACT_ALLOW);
+</span><span class='line'>    if (!ctx) { log_error("error seccomp ctx init"); return ret; }
+</span><span class='line'>
+</span><span class='line'>    // prohibits specified syscall
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(symlinkat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: symlinkat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    // limit syscall arguments
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(write), 1,
+</span><span class='line'>            SCMP_A2_64(SCMP_CMP_GT, 2048));
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: write"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_load(ctx);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
+</span><span class='line'>
+</span><span class='line'>out:
+</span><span class='line'>    seccomp_release(ctx);
+</span><span class='line'>    if (ret != 0) return -1;
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>extern char **environ;
+</span><span class='line'>
+</span><span class='line'>int main(int argc, char *argv[]) {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>
+</span><span class='line'>    ret = filter_syscalls();
+</span><span class='line'>    if (ret != 0) { log_error("filter syscall failed"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    char *prog = "/bin/bash";
+</span><span class='line'>    ret = execve(prog, (char *[]){prog, 0}, environ);
+</span><span class='line'>    log_debug("%d", ret);
+</span><span class='line'>    if (ret &lt; 0) { log_error("exec failed"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    return EXIT_SUCCESS;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For all source code &amp; detail, check <a href="https://github.com/Pro-YY/seccomp-demo">here</a>.</p>
+
+<p>Note: compile the above with <code>-lseccomp</code> flags, and run it when we get our secured shell.</p>
+
+<p>Then, play with it with the execed bash prompt:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp && ./a.out
+</span><span class='line'>[DEBUG]seccomp_basic.c: 32: filtering syscalls...
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ chmod -x a.out    # test fchmodat
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ ln -s a.out       # test symlinkat
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ echo "hello"      # test write
+</span><span class='line'>hello
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat seccomp_basic.c   # test write
+</span><span class='line'>Bad system call (core dumped)
+</span><span class='line'>
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat /proc/$$/status
+</span><span class='line'>...
+</span><span class='line'>NoNewPrivs:     1     # cannot be applied to child processes with greater privileges
+</span><span class='line'>Seccomp:        2     # Seccomp filter mode
+</span><span class='line'>...
+</span><span class='line'>
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ exit  # Don't forget quit bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As expected, the process (subprocess) invoke filtered syscall get SIGSYS, and core-dumped.</p>
+
+<h2>Export filter&rsquo;s bpf</h2>
+
+<p>Underneath, seccomp performs filtering by using bpf, which we&rsquo;ll explain later. The libseccomp provide useful funcitons to generate and output the corresponding bpf as well as pfc (Pseudo Filter Code). Thus we can take a more close look.</p>
+
+<p>For a trival case, we only filter the <code>fchmodat</code> syscall, and export bpf:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>    scmp_filter_ctx ctx;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls...");
+</span><span class='line'>    ctx = seccomp_init(SCMP_ACT_ALLOW);
+</span><span class='line'>    if (!ctx) { log_error("error seccomp ctx init"); return ret; }
+</span><span class='line'>
+</span><span class='line'>    // prohibits specified syscall
+</span><span class='line'>    ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
+</span><span class='line'>
+</span><span class='line'>    ret = seccomp_load(ctx);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    // export bpf
+</span><span class='line'>    int bpf_fd = open("seccomp_filter.bpf", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+</span><span class='line'>    if (bpf_fd == -1) { log_error("error open"); goto out; }
+</span><span class='line'>    ret = seccomp_export_bpf(ctx, bpf_fd);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error export"); goto out; }
+</span><span class='line'>    close(bpf_fd);
+</span><span class='line'>
+</span><span class='line'>    // export pfc
+</span><span class='line'>    int pfc_fd = open("seccomp_filter.pfc", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+</span><span class='line'>    if (pfc_fd == -1) { log_error("error open"); goto out; }
+</span><span class='line'>    ret = seccomp_export_pfc(ctx, pfc_fd);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error export"); goto out; }
+</span><span class='line'>    close(pfc_fd);
+</span><span class='line'>
+</span><span class='line'>out:
+</span><span class='line'>    seccomp_release(ctx);
+</span><span class='line'>    if (ret != 0) return -1;
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We got 2 files, bpf and pfc:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ hd seccomp_filter.bpf      # hexdump bpf file
+</span><span class='line'>00000000  20 00 00 00 04 00 00 00  15 00 00 05 3e 00 00 c0  | ...........&gt;...|
+</span><span class='line'>00000010  20 00 00 00 00 00 00 00  35 00 00 01 00 00 00 40  | .......5......@|
+</span><span class='line'>00000020  15 00 00 02 ff ff ff ff  15 00 01 00 0c 01 00 00  |................|
+</span><span class='line'>00000030  06 00 00 00 00 00 ff 7f  06 00 00 00 00 00 00 00  |................|
+</span><span class='line'>00000040</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cat seccomp_filter.pfc
+</span><span class='line'>#
+</span><span class='line'># pseudo filter code start
+</span><span class='line'>#
+</span><span class='line'># filter for arch x86_64 (3221225534)
+</span><span class='line'>if ($arch == 3221225534)
+</span><span class='line'>  # filter for syscall "fchmodat" (268) [priority: 65535]
+</span><span class='line'>    if ($syscall == 268)
+</span><span class='line'>        action KILL;
+</span><span class='line'>          # default action
+</span><span class='line'>            action ALLOW;
+</span><span class='line'># invalid architecture action
+</span><span class='line'>action KILL;
+</span><span class='line'>#
+</span><span class='line'># pseudo filter code end
+</span><span class='line'>#</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems quite straightforward. And there&rsquo;s an awesome tool: <a href="https://github.com/david942j/seccomp-toolsj">seccomp-tools</a> which can disassembles <em>seccomp_filter.bpf</em> above:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> line  CODE  JT   JF      K
+</span><span class='line'> 0000: 0x20 0x00 0x00 0x00000004  A = arch
+</span><span class='line'> 0001: 0x15 0x00 0x05 0xc000003e  if (A != ARCH_X86_64) goto 0007
+</span><span class='line'> 0002: 0x20 0x00 0x00 0x00000000  A = sys_number
+</span><span class='line'> 0003: 0x35 0x00 0x01 0x40000000  if (A &lt; 0x40000000) goto 0005
+</span><span class='line'> 0004: 0x15 0x00 0x02 0xffffffff  if (A != 0xffffffff) goto 0007
+</span><span class='line'> 0005: 0x15 0x01 0x00 0x0000010c  if (A == fchmodat) goto 0007
+</span><span class='line'> 0006: 0x06 0x00 0x00 0x7fff0000  return ALLOW
+</span><span class='line'> 0007: 0x06 0x00 0x00 0x00000000  return KILL</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Seccomp-BPF</h2>
+
+<p>Seccomp-BPF is just an extension of cBPF (classical Berkeley Packet Filter, Note: not eBPF).
+The <strong>tiny</strong>  bpf program runs on a specific VM in kernel, with a rather limited registers and a more reduced instruction set.</p>
+
+<p>BPF code definitions in <em>/usr/include/linux/filter.h</em>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct sock_filter {    /* Filter block */
+</span><span class='line'>        __u16   code;   /* Actual filter code */
+</span><span class='line'>        __u8    jt;     /* Jump true */
+</span><span class='line'>        __u8    jf;     /* Jump false */
+</span><span class='line'>        __u32   k;      /* Generic multiuse field */
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can of course, directly apply seccomp-bpf binary code with prctl(), which wraps the <code>seccomp</code> syscall,
+to gain more fine-graind control of our bpf. But in most casses, those libseccomp wrappers, like <code>seccomp_rule_add()</code> just works.
+The binary code is the same as the just hexdumped file for filtering <code>fchmodat</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>int filter_syscalls() {
+</span><span class='line'>    int ret = -1;
+</span><span class='line'>
+</span><span class='line'>    log_debug("filtering syscalls with bpf...");
+</span><span class='line'>
+</span><span class='line'>    struct sock_filter code[] = {
+</span><span class='line'>        /* op,   jt,   jf,     k    */
+</span><span class='line'>        {0x20, 0x00, 0x00, 0x00000004},
+</span><span class='line'>        {0x15, 0x00, 0x05, 0xc000003e},
+</span><span class='line'>        {0x20, 0x00, 0x00, 0x00000000},
+</span><span class='line'>        {0x35, 0x00, 0x01, 0x40000000},
+</span><span class='line'>        {0x15, 0x00, 0x02, 0xffffffff},
+</span><span class='line'>        {0x15, 0x01, 0x00, 0x0000010c}, // 268 fchmodat
+</span><span class='line'>        {0x06, 0x00, 0x00, 0x7fff0000},
+</span><span class='line'>        {0x06, 0x00, 0x00, 0x00000000},
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>    struct sock_fprog bpf = {
+</span><span class='line'>        .len = ARRAY_SIZE(code),
+</span><span class='line'>        .filter = code,
+</span><span class='line'>    };
+</span><span class='line'>
+</span><span class='line'>    ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error prctl set no new privs"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &bpf);
+</span><span class='line'>    if (ret &lt; 0) { log_error("error prctl set seccomp filter"); return EXIT_FAILURE; }
+</span><span class='line'>
+</span><span class='line'>    return 0;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Performance Overhead</h2>
+
+<p>There is no such thing as a free lunch, so as the seccomp-bpf. After all,it is a hooking program, that runs each time whever and whatever a syscall invoked.
+We benchmarked 3 senarios: no filter, filter that blocks 1 syscall, and filter that blocks 100 syscall (a more sophisticated bpf).
+And we measured the time elpased during 10million <code>write()</code> syscall, and plotted as following:</p>
+
+<div id="hc_test" style="min-width: 310px; height: 400px; margin: 0 auto">hc_test</div>
+
+
+
+
+<script src="https://code.highcharts.com/highcharts.src.js"></script>
+
+
+<script type="text/javascript">
+
+function draw() {
+Highcharts.chart('hc_test', {
+    chart: {
+      type: 'column'
+    },
+
+    title: {
+        text: ''//
+    },
+
+    subtitle: {
+        text: ''//
+    },
+
+    xAxis: {
+        categories: ['without filter', '1-filter bpf', '100-filter pbf']
+    },
+    yAxis: {
+        title: {
+            text: 'time (seconds)',
+        },
+        max: 5,
+        min: 0,
+    },
+
+    tooltip: {
+        formatter: function () {
+            return '<b>' + this.x + '</b><br/>' +
+                this.series.name + ': ' + this.y + '<br/>';
+        }
+    },
+plotOptions: {
+        bar: {
+            dataLabels: {
+                enabled: true
+            }
+        }
+    },
+
+    series: [{
+        type: 'line',
+        name: '256 write real',
+        data: [3.991, 4.157, 4.506]
+    }, {
+        type: 'line',
+        name: '2048 write real',
+        data: [3.959, 4.162, 4.502]
+    }, {
+        type: 'line',
+        name: '256 write sys',
+        data: [2.763, 3.011, 3.397]
+    }, {
+        type: 'line',
+        name: '2048 write sys',
+        data: [2.797, 3.059, 3.321]
+    }]
+
+});
+
+}
+
+draw();
+</script>
+
+
+<p>As it shows, the overhead is around 5%~10%, and will be even more with the larger bpf code.</p>
+
+<h2>Summary</h2>
+
+<p>In this post, we managed to filter syscalls  with several seccomp-related facilities, inspect the seccomp-bpf code, and understand its costs.
+This would be helpful especially if you&rsquo;re implementing your sandbox-like applications that need security concerns.
+Wish you enjoy hacking!</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://man7.org/linux/man-pages/man2/seccomp.2.html">Seccomp(2) Linux mannual page</a></li>
+<li><a href="http://man7.org/linux/man-pages/man3/seccomp_init.3.html">seccomp_init(3) Linux mannual page</a></li>
+<li><a href="https://www.kernel.org/doc/html/v4.16/userspace-api/seccomp_filter.html">Kernel document: seccomp filter</a></li>
+<li><a href="https://lwn.net/Articles/656307/">A seccomp overview</a></li>
+<li><a href="http://man7.org/conf/lpc2015/limiting_kernel_attack_surface_with_seccomp-LPC_2015-Kerrisk.pdf">Using seccomp to limit the kernel attack surface</a></li>
+<li><a href="https://github.com/seccomp/libseccomp">libseccomp source</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2096,173 +2628,6 @@ And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-08-17T09:29:47+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:29 am</span></time>
-        
-           | <a href="/blog/2015/08/17/ssh-port-forwarding/#disqus_thread"
-             data-disqus-identifier="https://www.yangyang.cloud/blog/2015/08/17/ssh-port-forwarding/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Overview</h2>
-
-<p>利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。</p>
-
-<h2>Environment</h2>
-
-<ul>
-<li><strong>L0</strong>: localhost behind <em>NAT</em>, with lan ip <strong>192.168.0.100</strong></li>
-<li><strong>L1</strong>: host within same lan of L0, with lan ip <strong>192.168.0.101</strong></li>
-<li><strong>R0</strong>: remote host (<em>cloud vps</em>) with private ip <strong>10.0.0.100</strong></li>
-<li><strong>R1</strong>: remote host (<em>cloud vps</em>) with private ip <strong>10.0.0.101</strong></li>
-</ul>
-
-
-<p>L0 can ssh (default port 22) to R0 by its public domain name <strong>r0.example.com</strong> with public key, like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="/images/ssh-port-forwarding/0.png" alt="" /></p>
-
-<h2>Forwarding local host (-L)</h2>
-
-<h3>Usage</h3>
-
-<blockquote><p>Specifies that the given port on the local (client) host is to be forwarded to the given host and port on the remote side.</p></blockquote>
-
-
-<p>SSH -L is good for exposing a remote port locally.</p>
-
-<p>增强本地主机的访问远程主机（局域网）能力。</p>
-
-<h3>Example</h3>
-
-<h4>1. Forward L0 to R0</h4>
-
-<p>The mongod has the http web service, listening only on localhost:28017. With the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then the remote service on 28017 will be accessed on L0&rsquo;s 28018 port from L0.
-<img src="/images/ssh-port-forwarding/1.png" alt="" /></p>
-
-<h4>2. Forward L0 to R1</h4>
-
-<p>Suggest that there&rsquo;s an API server on R1, listening only on port 10030 of lan (10.0.0.0/24).
-Because R0 can access R1&rsquo;s private address of the same lan, so the following command will make R1&rsquo;s service of port 10030 accessible from L0&rsquo;s local port 10031.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Note, use R1&rsquo;s private ip <em>10.0.0.101</em> instead of <em>localhost</em>.</p>
-
-<p><img src="/images/ssh-port-forwarding/2.png" alt="" /></p>
-
-<h4>3. Forward L1 to R1</h4>
-
-<p>Say R0 can access R1 through ssh command: ssh secret-user@10.0.0.101, then the following command</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>will forward L0&rsquo;s port 2222 to the R1&rsquo;s port 22, and even make L0 listening within the lan. So from L1, we can access to R1 by this command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 secret-user@192.168.0.100</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="/images/ssh-port-forwarding/3.png" alt="" />
-Awesome!</p>
-
-<h2>Forwarding remote host (-R)</h2>
-
-<h3>Usage</h3>
-
-<blockquote><p>Specifies that the given port on the remote (server) host is to be forwarded to the given host and port on the local side.</p></blockquote>
-
-
-<p>So the SSH -R can be useful when accessing a box hidden behind a NAT.</p>
-
-<p>增强远端主机的访问本地主机（局域网）的能力。</p>
-
-<h3>Example</h3>
-
-<h4>1. Forward R0 to L0</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="/images/ssh-port-forwarding/4.png" alt="" /></p>
-
-<h4>2. Forward R0 to L1</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="/images/ssh-port-forwarding/5.png" alt="" /></p>
-
-<h4>3. Forward R1 to L1</h4>
-
-<p>Unlike local forwarding, remote forwarding from R1 to L1 is not permitted by default due to security policy,
-unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the additional config line:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>GatewayPorts = yes</span></code></pre></td></tr></table></div></figure>
-
-
-<p>then the ultimate tunnel created, with which we can access L1&rsquo;s port on machine R1. Cool?</p>
-
-<h2>Dynamic forwarding (-D)</h2>
-
-<h3>Usage</h3>
-
-<blockquote><p>Specifies a local “dynamic” application-level port forwarding...and ssh will act as a SOCKS server.</p></blockquote>
-
-
-<h3>Example</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 user@r0.example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then, there exists a SOCKS server on L0, and we can use it as a proxy server.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost:1080 https://www.google.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="/images/ssh-port-forwarding/7.png" alt="" /></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -2280,6 +2645,10 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2018/11/13/distributed-load-testing-by-locust/">Distributed Load Testing by Locust</a>
@@ -2317,15 +2686,11 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
         <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2015/08/17/ssh-port-forwarding/">SSH Port Forwarding</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Tag Cloud</h1>
-  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 145.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 160.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
 </section>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- text-1 -->
