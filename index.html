@@ -255,6 +255,8 @@
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
 <span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp && ./a.out
 </span><span class='line'>[DEBUG]seccomp_basic.c: 32: filtering syscalls...
 </span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ chmod -x a.out    # test fchmodat
@@ -272,6 +274,8 @@
 </span><span class='line'>Seccomp:        2     # Seccomp filter mode
 </span><span class='line'>...
 </span><span class='line'>
+</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ sudo ls
+</span><span class='line'>sudo: effective uid is not 0, is /usr/bin/sudo on a file system with the 'nosuid' option set or an NFS file system without root privileges?
 </span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ exit  # Don't forget quit bash</span></code></pre></td></tr></table></div></figure>
 
 
