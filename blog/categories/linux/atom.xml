@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2019-12-20T17:38:59+08:00</updated>
+  <updated>2019-12-20T17:48:43+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -20,7 +20,7 @@
     <id>https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters</id>
     <content type="html"><![CDATA[<h2>Overview</h2>
 
-<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, OpenSSH&hellip;) for resource isolation purposes.</p>
+<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH&hellip;) for resource isolation purposes.</p>
 
 <h2>Basic example</h2>
 
@@ -404,6 +404,8 @@ Wish you enjoy hacking!</p>
 <li><a href="https://lwn.net/Articles/656307/">A seccomp overview</a></li>
 <li><a href="http://man7.org/conf/lpc2015/limiting_kernel_attack_surface_with_seccomp-LPC_2015-Kerrisk.pdf">Using seccomp to limit the kernel attack surface</a></li>
 <li><a href="https://github.com/seccomp/libseccomp">libseccomp source</a></li>
+<li><a href="https://lwn.net/Articles/656307/">A seccomp overview</a></li>
+<li><a href="https://www.kernel.org/doc/Documentation/networking/filter.txt">Linux Socket Filtering aka Berkeley Packet Filter (BPF)</a></li>
 </ul>
 
 ]]></content>
