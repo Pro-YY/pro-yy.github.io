@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2019-12-20T18:02:22+08:00</updated>
+  <updated>2019-12-24T11:39:31+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 
 <p>Note: compile the above with <code>-lseccomp</code> flags, and run it when we get our secured shell.</p>
 
-<p>Then, play with it with the execed bash prompt:
+<p>Then, try it with the execed bash prompt:
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>

@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2019-12-20T18:02:22+08:00</updated>
+  <updated>2019-12-24T11:39:31+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Linux eBPF Tracing]]></title>
+    <link href="https://www.yangyang.cloud/blog/2019/12/22/linux-ebpf-tracing/"/>
+    <updated>2019-12-22T21:59:00+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2019/12/22/linux-ebpf-tracing</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Linux Seccomp Filters]]></title>
@@ -136,7 +145,7 @@
 
 <p>Note: compile the above with <code>-lseccomp</code> flags, and run it when we get our secured shell.</p>
 
-<p>Then, play with it with the execed bash prompt:</p>
+<p>Then, try it with the execed bash prompt:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
