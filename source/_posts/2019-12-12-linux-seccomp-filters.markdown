@@ -76,7 +76,7 @@ For all source code & detail, check [here](https://github.com/Pro-YY/seccomp-dem
 
 Note: compile the above with `-lseccomp` flags, and run it when we get our secured shell.
 
-Then, play with it with the execed bash prompt:
+Then, try it with the execed bash prompt:
 ```
 brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp && ./a.out
 [DEBUG]seccomp_basic.c: 32: filtering syscalls...
