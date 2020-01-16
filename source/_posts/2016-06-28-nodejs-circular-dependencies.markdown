@@ -13,7 +13,7 @@ categories: Node.js
 
 ### Node.js的module系统支持部分加载
 代码实例如下：
-```javascript auth.js
+```
 'use strict';
 const user = require('./user');
 
@@ -35,7 +35,8 @@ module.exports = {
 
 console.log('# auth loaded');
 ```
-```javascript user.js
+
+```
 'use strict';
 const message = require('./message');
 
@@ -54,7 +55,8 @@ module.exports = {
 
 console.log('# user loaded');
 ```
-```javascript message.js
+
+```
 'use strict';
 const auth = require('./auth');
 
@@ -72,7 +74,9 @@ module.exports = {
 
 console.log('# message loaded');
 ```
-```javascript main.js
+
+
+```
 'use strict';
 console.log('# main starting');
 const auth = require('./auth');
@@ -83,7 +87,8 @@ auth.authenticate('Alice');
 ```
 
 运行结果
-```bash result
+
+```
 # main starting
 # in message: auth is
 {}
@@ -101,6 +106,7 @@ start running...
 found user: Alice
 hello, Alice
 ```
+
 三个模块的关系为：auth模块引用user模块，并调用了其导出的find的方法；user模块引用message模块，并调用其导出的hello方法；message模块引用auth模块，但没有调用其任何导出的方法。
 main模块引用了auth模块，并调用了其导出的authenticate方法。即程序存在模块循环依赖，但不存在循环模块引用（方法间的循环调用）。
 
@@ -108,7 +114,8 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 
 ## 问题引入
 改变message中的hello方法实现（第8、9行），引入循环依赖。
-```javascript message.js
+
+```
 'use strict';
 const auth = require('./auth');
 
@@ -126,8 +133,10 @@ module.exports = {
 
 console.log('# message loaded');
 ```
+
 再次运行，结果如下
-```bash result
+
+```
 # main starting
 # in message: auth is
 {}
@@ -149,6 +158,7 @@ found user: Alice
 
 TypeError: auth.enabled is not a function
 ```
+
 有了之前的分析，错误的原因也就不难分析了：message模块加载时，auth模块还未初始化完成，即此时还未用已经初始化完成的正确对象来覆盖module.exports对象，从临时的空对象里当然就找不到enabled方法。
 
 ## 循环依赖解决
@@ -156,7 +166,8 @@ TypeError: auth.enabled is not a function
 ###前置模块导出
 前置模块导出的方法，可以做到将模块方法的定义和挂载延迟到运行时，而非在模块第一次加载完成后再用一个变量统一覆盖掉module.exports对象(像举例中的传统模块声明方法)。
 因此更高效地利用了部分加载的特性，让模块间彼此更加独立、协作更好。对于刚才的问题，具体的优化实现如下。
-```javascript auth.js
+
+```
 'use strict';
 const Module = module.exports;
 
@@ -178,7 +189,8 @@ Module.enabled = enabled;
 
 console.log('# auth loaded');
 ```
-```javascript user.js
+
+```
 'use strict';
 const Module = module.exports;
 
@@ -197,7 +209,8 @@ Module.find = find;
 
 console.log('# user loaded');
 ```
-```javascript message.js
+
+```
 'use strict';
 const Module = module.exports;
 
@@ -215,7 +228,8 @@ Module.hello = hello;
 
 console.log('# message loaded');
 ```
-``` bash result
+
+```
 # main starting
 # in message: auth is
 {}
@@ -233,6 +247,7 @@ start running...
 found user: Alice
 hello, Alice
 ```
+
 引用的错误解决，运行正确。
 
 基于这种设计的模块前置导出技术，即“加载时先导出模块、运行时后实现方法”的模块实现思路，可应用于存在多模块间循环依赖引用的情况，从而方便实现逻辑关系更复杂的模块。

@@ -8,7 +8,9 @@ categories: linux
 
 ## Overview
 
-Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a "secure" state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. Seccomp-BPF was released in 2012, providing more syscall filtering features on bpf. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH...) for resource isolation purposes.
+Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a "secure" state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS.
+Seccomp-BPF was released in 2012, providing more syscall filtering features on bpf.
+It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH...) for resource isolation purposes.
 
 ## Basic example
 
