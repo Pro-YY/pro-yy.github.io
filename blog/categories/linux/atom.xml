@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2019-12-24T11:39:31+08:00</updated>
+  <updated>2020-01-16T10:26:36+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -20,7 +20,7 @@
     <id>https://www.yangyang.cloud/blog/2019/12/12/linux-seccomp-filters</id>
     <content type="html"><![CDATA[<h2>Overview</h2>
 
-<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH&hellip;) for resource isolation purposes.</p>
+<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. Seccomp-BPF was released in 2012, providing more syscall filtering features on bpf. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH&hellip;) for resource isolation purposes.</p>
 
 <h2>Basic example</h2>
 
@@ -88,46 +88,28 @@ int main(int argc, char *argv[]) {
 <p>Note: compile the above with <code>-lseccomp</code> flags, and run it when we get our secured shell.</p>
 
 <p>Then, try it with the execed bash prompt:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp &amp;&amp; ./a.out
-</span><span class='line'>[DEBUG]seccomp_basic.c: 32: filtering syscalls&hellip;
-</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ chmod -x a.out  # test fchmodat
-</span><span class='line'>Bad system call (core dumped)
-</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ ln -s a.out     # test symlinkat
-</span><span class='line'>Bad system call (core dumped)
-</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ echo &ldquo;hello&rdquo;        # test write
-</span><span class='line'>hello
-</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat seccomp_basic.c # test write
-</span><span class='line'>Bad system call (core dumped)&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat /proc/$$/status
-</span><span class='line'>&hellip;
-</span><span class='line'>NoNewPrivs:     1       # cannot be applied to child processes with greater privileges
-</span><span class='line'>Seccomp:        2       # Seccomp filter mode
-</span><span class='line'>&hellip;&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;brooke@VM-250-12-ubuntu:~/seccomp_demo$ sudo ls
-</span><span class='line'>sudo: effective uid is not 0, is /usr/bin/sudo on a file system with the &lsquo;nosuid&rsquo; option set or an NFS file system without root privileges?
-</span><span class='line'>brooke@VM-250-12-ubuntu:~/seccomp_demo$ exit    # Don&rsquo;t forget quit bash</span></code></pre></td></tr></table></div></figure>
+```
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ gcc seccomp_basic.c -l seccomp &amp;&amp; ./a.out
+[DEBUG]seccomp_basic.c: 32: filtering syscalls&hellip;
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ chmod -x a.out  # test fchmodat
+Bad system call (core dumped)
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ ln -s a.out     # test symlinkat
+Bad system call (core dumped)
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ echo &ldquo;hello&rdquo;        # test write
+hello
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat seccomp_basic.c # test write
+Bad system call (core dumped)</p>
+
+<p>brooke@VM-250-12-ubuntu:~/seccomp_demo$ cat /proc/$$/status
+&hellip;
+NoNewPrivs:     1       # cannot be applied to child processes with greater privileges
+Seccomp:        2       # Seccomp filter mode
+&hellip;</p>
+
+<p>brooke@VM-250-12-ubuntu:~/seccomp_demo$ sudo ls
+sudo: effective uid is not 0, is /usr/bin/sudo on a file system with the &lsquo;nosuid&rsquo; option set or an NFS file system without root privileges?
+brooke@VM-250-12-ubuntu:~/seccomp_demo$ exit    # Don&rsquo;t forget quit bash
+```
 As expected, the process (subprocess) invoke filtered syscall get SIGSYS, and core-dumped.</p>
 
 <h2>Export filter&rsquo;s bpf</h2>
@@ -135,84 +117,47 @@ As expected, the process (subprocess) invoke filtered syscall get SIGSYS, and co
 <p>Underneath, seccomp performs filtering by using bpf, which we&rsquo;ll explain later. The libseccomp provide useful funcitons to generate and output the corresponding bpf as well as pfc (Pseudo Filter Code). Thus we can take a more close look.</p>
 
 <p>For a trival case, we only filter the <code>fchmodat</code> syscall, and export bpf:
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>int filter_syscalls() {
-</span><span class='line'>    int ret = -1;
-</span><span class='line'>    scmp_filter_ctx ctx;&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;log_debug("filtering syscalls...");
-</span><span class='line'>ctx = seccomp_init(SCMP_ACT_ALLOW);
-</span><span class='line'>if (!ctx) { log_error("error seccomp ctx init"); return ret; }
-</span><span class='line'>
-</span><span class='line'>// prohibits specified syscall
-</span><span class='line'>ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
-</span><span class='line'>if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
-</span><span class='line'>
-</span><span class='line'>ret = seccomp_load(ctx);
-</span><span class='line'>if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>// export bpf
-</span><span class='line'>int bpf_fd = open("seccomp_filter.bpf", O_CREAT | O_WRONLY | O_TRUNC, 0666);
-</span><span class='line'>if (bpf_fd == -1) { log_error("error open"); goto out; }
-</span><span class='line'>ret = seccomp_export_bpf(ctx, bpf_fd);
-</span><span class='line'>if (ret &lt; 0) { log_error("error export"); goto out; }
-</span><span class='line'>close(bpf_fd);
-</span><span class='line'>
-</span><span class='line'>// export pfc
-</span><span class='line'>int pfc_fd = open("seccomp_filter.pfc", O_CREAT | O_WRONLY | O_TRUNC, 0666);
-</span><span class='line'>if (pfc_fd == -1) { log_error("error open"); goto out; }
-</span><span class='line'>ret = seccomp_export_pfc(ctx, pfc_fd);
-</span><span class='line'>if (ret &lt; 0) { log_error("error export"); goto out; }
-</span><span class='line'>close(pfc_fd);
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;out:
-</span><span class='line'>    seccomp_release(ctx);
-</span><span class='line'>    if (ret != 0) return -1;&lt;/p&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;pre&gt;&lt;code&gt;return 0;
-</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
-</span><span class='line'>
-</span><span class='line'>&lt;p&gt;}</span></code></pre></td></tr></table></div></figure></p>
+```
+int filter_syscalls() {
+    int ret = -1;
+    scmp_filter_ctx ctx;</p>
+
+<pre><code>log_debug("filtering syscalls...");
+ctx = seccomp_init(SCMP_ACT_ALLOW);
+if (!ctx) { log_error("error seccomp ctx init"); return ret; }
+
+// prohibits specified syscall
+ret = seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(fchmodat), 0);
+if (ret &lt; 0) { log_error("error seccomp rule add: fchmodat"); goto out; }
+
+ret = seccomp_load(ctx);
+if (ret &lt; 0) { log_error("error seccomp load"); goto out; }
+
+
+// export bpf
+int bpf_fd = open("seccomp_filter.bpf", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+if (bpf_fd == -1) { log_error("error open"); goto out; }
+ret = seccomp_export_bpf(ctx, bpf_fd);
+if (ret &lt; 0) { log_error("error export"); goto out; }
+close(bpf_fd);
+
+// export pfc
+int pfc_fd = open("seccomp_filter.pfc", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+if (pfc_fd == -1) { log_error("error open"); goto out; }
+ret = seccomp_export_pfc(ctx, pfc_fd);
+if (ret &lt; 0) { log_error("error export"); goto out; }
+close(pfc_fd);
+</code></pre>
+
+<p>out:
+    seccomp_release(ctx);
+    if (ret != 0) return -1;</p>
+
+<pre><code>return 0;
+</code></pre>
+
+<p>}
+```</p>
 
 <p>We got 2 files, bpf and pfc:
 <code>
@@ -540,293 +485,154 @@ For notification, what we need to do is just write <code>0x1</code> (any value y
 <p>You can adjust threads number to inspect the detail, and there&rsquo;s a plethora of fun with it.</p>
 
 <p>But now, let&rsquo;s try something hard. We&rsquo;ll <code>smoke test</code> our worker by generate a heavy instant load, instead of the former regular one. And we tweak the producer/consumer thread to 1, and watching the performance.
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">producer_routine_spike</span><span class="p">(</span><span class="kt">void</span> <span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="n">data</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">struct</span> <span class="n">thread_info</span> <span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">thread_info</span> <span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="p">)</span><span class="n">data</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">struct</span> <span class="n">epoll_event</span> <span class="n">event</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">epfd</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">efd</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">num_task</span> <span class="o">=</span> <span class="mi">1000000</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">log_debug</span><span class="p">(</span><span class="s">&quot;[producer-%d] will issue %d tasks&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">rank</span><span class="p">,</span> <span class="n">num_task</span><span class="p">);</span>
-</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="n">num_task</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">efd</span> <span class="o">=</span> <span class="n">eventfd</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">EFD_CLOEXEC</span> <span class="o">|</span> <span class="n">EFD_NONBLOCK</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">efd</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">exit_error</span><span class="p">(</span><span class="s">&quot;eventfd create: %s&quot;</span><span class="p">,</span> <span class="n">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
-</span><span class='line'>    <span class="n">event</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">efd</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">event</span><span class="p">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">EPOLLIN</span> <span class="o">|</span> <span class="n">EPOLLET</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">ret</span> <span class="o">=</span> <span class="n">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">efd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">event</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">exit_error</span><span class="p">(</span><span class="s">&quot;epoll_ctl&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">ret</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="n">efd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;(</span><span class="kt">uint64_t</span><span class="p">){</span><span class="mi">1</span><span class="p">},</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">));</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">)</span> <span class="n">log_error</span><span class="p">(</span><span class="s">&quot;[producer-%d] failed to write eventfd&quot;</span><span class="p">,</span> <span class="n">p</span><span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span><span class="n">rank</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></p>
+```c
+static void <em>producer_routine_spike(void </em>data) {
+    struct thread_info <em>p = (struct thread_info </em>)data;
+    struct epoll_event event;
+    int epfd = p->epfd;
+    int efd = -1;
+    int ret = -1;
+    int num_task = 1000000;</p>
+
+<pre><code>log_debug("[producer-%d] will issue %d tasks", p-&gt;rank, num_task);
+for (int i = 0; i &lt; num_task; i++) {
+    efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    if (efd == -1) exit_error("eventfd create: %s", strerror(errno));
+    event.data.fd = efd;
+    event.events = EPOLLIN | EPOLLET;
+    ret = epoll_ctl(epfd, EPOLL_CTL_ADD, efd, &amp;event);
+    if (ret != 0) exit_error("epoll_ctl");
+    ret = write(efd, &amp;(uint64_t){1}, sizeof(uint64_t));
+    if (ret != 8) log_error("[producer-%d] failed to write eventfd", p-&gt;rank);
+}
+return (void *)0;
+</code></pre>
+
+<p>}
+```</p>
 
 <p><strong>Over 1 million?</strong> Indeed! By using the <code>ulimit</code> command below, we can increase the <code>open files</code> limit of the current shell, which is usually 1024 by default.
 Note that you need to be root.
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
-<span class='line-number'>112</span>
-<span class='line-number'>113</span>
-<span class='line-number'>114</span>
-<span class='line-number'>115</span>
-<span class='line-number'>116</span>
-<span class='line-number'>117</span>
-<span class='line-number'>118</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">ulimit</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1048576</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="mi">1048576</span> <span class="n">is</span> <span class="n">the</span> <span class="k">default</span> <span class="n">maximum</span> <span class="k">for</span> <span class="n">open</span> <span class="n">files</span><span class="p">,</span> <span class="n">as</span> <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;/</span><span class="n">proc</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">fs</span><span class="o">/</span><span class="n">nr_open</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span> <span class="n">shows</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">To</span> <span class="n">make</span> <span class="n">it</span> <span class="n">larger</span><span class="p">,</span> <span class="n">you</span> <span class="n">need</span> <span class="n">to</span> <span class="n">tweak</span> <span class="n">kernel</span> <span class="n">settings</span> <span class="n">like</span> <span class="n">this</span> <span class="p">(</span><span class="n">which</span> <span class="n">is</span> <span class="n">beyond</span> <span class="n">our</span> <span class="n">scope</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="n">sysctl</span> <span class="o">-</span><span class="n">w</span> <span class="n">fs</span><span class="p">.</span><span class="n">nr_open</span><span class="o">=</span><span class="mi">10485760</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="err">```</span>
-</span><span class='line'><span class="n">Since</span> <span class="n">the</span> <span class="n">info</span> <span class="n">of</span> <span class="n">stdout</span> <span class="n">is</span> <span class="n">so</span> <span class="n">much</span> <span class="n">that</span> <span class="n">we</span> <span class="n">redirect</span> <span class="n">the</span> <span class="n">stdout</span> <span class="n">to</span> <span class="n">file</span> <span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">log</span><span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="p">.</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">img</span> <span class="n">src</span><span class="o">=</span><span class="s">&quot;/images/worker-pool-with-eventfd/eventfd_worker_execution_spike.gif&quot;</span> <span class="n">alt</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="o">/&gt;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">With</span> <span class="n">my</span> <span class="n">test</span> <span class="n">VM</span> <span class="p">(</span><span class="n">S2</span><span class="p">.</span><span class="n">Medium4</span> <span class="n">type</span> <span class="n">on</span> <span class="o">&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;https://cloud.tencent.com/&quot;</span><span class="o">&gt;</span><span class="n">TencentCloud</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">which</span> <span class="n">has</span> <span class="n">only</span> <span class="mi">2</span> <span class="n">vCPU</span> <span class="n">and</span> <span class="mi">4</span><span class="n">G</span> <span class="n">memory</span><span class="p">,</span> <span class="n">it</span> <span class="n">takes</span> <span class="n">less</span> <span class="n">than</span> <span class="mf">6.5</span> <span class="n">seconds</span> <span class="n">to</span> <span class="n">deal</span> <span class="n">with</span> <span class="mi">1</span> <span class="n">million</span> <span class="n">concurrent</span> <span class="p">(</span><span class="n">almost</span><span class="p">)</span> <span class="n">events</span><span class="p">.</span> <span class="n">And</span> <span class="n">we</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">ve</span> <span class="n">seen</span> <span class="n">the</span> <span class="n">kernel</span><span class="o">-</span><span class="n">implemented</span> <span class="n">counters</span> <span class="n">and</span> <span class="n">wait</span> <span class="n">queue</span> <span class="n">are</span> <span class="n">quite</span> <span class="n">efficient</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="n">Conclusions</span><span class="o">&lt;/</span><span class="n">h2</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Multi</span><span class="o">-</span><span class="n">threaded</span> <span class="n">programming</span> <span class="n">model</span> <span class="n">is</span> <span class="n">prevailing</span> <span class="n">now</span><span class="p">,</span> <span class="k">while</span> <span class="n">the</span> <span class="n">best</span> <span class="n">way</span> <span class="n">of</span> <span class="n">scheduling</span> <span class="p">(</span><span class="n">event</span> <span class="n">trigger</span> <span class="n">and</span> <span class="n">dispatching</span> <span class="n">method</span><span class="p">)</span> <span class="n">is</span> <span class="n">still</span> <span class="n">under</span> <span class="n">discussion</span> <span class="n">and</span> <span class="n">sometimes</span> <span class="n">even</span> <span class="n">opinionated</span><span class="p">.</span>
-</span><span class='line'><span class="n">In</span> <span class="n">this</span> <span class="n">post</span><span class="p">,</span> <span class="n">we</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">ve</span> <span class="n">implemented</span> <span class="n">general</span><span class="o">-</span><span class="n">purposed</span> <span class="n">worker</span> <span class="kr">thread</span> <span class="n">pool</span> <span class="n">based</span> <span class="n">on</span> <span class="n">an</span> <span class="n">advanced</span> <span class="n">message</span> <span class="n">mechanism</span><span class="p">,</span> <span class="n">which</span> <span class="nl">includes</span><span class="p">:</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">ol</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="n">message</span> <span class="nl">notification</span><span class="p">:</span> <span class="n">asynchronous</span> <span class="n">delivering</span><span class="p">,</span> <span class="n">extremely</span> <span class="n">low</span> <span class="n">overhead</span><span class="p">,</span> <span class="n">high</span> <span class="n">performance</span><span class="o">&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="n">message</span> <span class="nl">dispatching</span><span class="p">:</span> <span class="n">as</span> <span class="n">a</span> <span class="n">load</span> <span class="n">balancer</span><span class="p">,</span> <span class="n">highly</span> <span class="n">scalable</span><span class="o">&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="n">message</span> <span class="nl">buffering</span><span class="p">:</span> <span class="n">as</span> <span class="n">message</span> <span class="n">queue</span><span class="p">,</span> <span class="n">with</span> <span class="n">robustness</span><span class="o">&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">ol</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">All</span> <span class="n">the</span> <span class="n">above</span> <span class="n">are</span> <span class="n">fulfilled</span> <span class="n">by</span> <span class="n">using</span> <span class="n">basic</span> <span class="n">Linux</span> <span class="n">kernel</span> <span class="n">feature</span><span class="o">/</span><span class="n">syscall</span><span class="p">,</span> <span class="n">like</span> <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">epoll</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span> <span class="n">and</span> <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">eventfd</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">.</span>
-</span><span class='line'><span class="n">Everyone</span> <span class="n">may</span> <span class="n">refers</span> <span class="n">to</span> <span class="n">this</span> <span class="n">approach</span> <span class="n">when</span> <span class="n">he</span><span class="o">/</span><span class="n">she</span> <span class="n">designs</span> <span class="n">a</span> <span class="n">single</span><span class="o">-</span><span class="n">process</span> <span class="n">performant</span> <span class="p">(</span><span class="n">especially</span> <span class="n">IO</span><span class="o">-</span><span class="n">bound</span><span class="p">)</span> <span class="n">background</span> <span class="n">service</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">To</span> <span class="n">sum</span> <span class="n">up</span><span class="p">,</span> <span class="n">taking</span> <span class="n">advantage</span> <span class="n">of</span> <span class="n">Linux</span> <span class="n">kernel</span> <span class="n">capability</span><span class="p">,</span> <span class="n">we</span> <span class="n">are</span> <span class="n">now</span> <span class="n">managed</span> <span class="n">to</span> <span class="n">implement</span> <span class="n">our</span> <span class="n">high</span><span class="o">-</span><span class="n">performance</span> <span class="n">message</span><span class="o">-</span><span class="n">based</span> <span class="n">worker</span> <span class="n">pool</span><span class="p">,</span> <span class="n">which</span> <span class="n">is</span> <span class="n">able</span> <span class="n">to</span> <span class="n">deal</span> <span class="n">with</span> <span class="n">large</span> <span class="n">throughput</span> <span class="n">and</span> <span class="n">of</span> <span class="n">high</span> <span class="n">scalability</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="n">References</span><span class="o">&lt;/</span><span class="n">h2</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;https://linux.die.net/man/2/eventfd&quot;</span><span class="o">&gt;</span><span class="n">eventfd</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">Linux</span> <span class="n">Man</span> <span class="n">Page</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;https://elixir.bootlin.com/linux/latest/source/fs/eventpoll.c&quot;</span><span class="o">&gt;</span><span class="n">eventpoll</span> <span class="o">-</span> <span class="n">Linux</span> <span class="n">Source</span> <span class="n">Code</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;&lt;</span><span class="n">a</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;https://elixir.bootlin.com/linux/latest/source/fs/eventfd.c&quot;</span><span class="o">&gt;</span><span class="n">eventfd</span> <span class="o">-</span> <span class="n">Linux</span> <span class="n">Source</span> <span class="n">Code</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">]]</span><span class="o">&gt;&lt;/</span><span class="n">content</span><span class="o">&gt;</span>
-</span><span class='line'>  <span class="o">&lt;/</span><span class="n">entry</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="o">&lt;</span><span class="n">entry</span><span class="o">&gt;</span>
-</span><span class='line'>    <span class="o">&lt;</span><span class="n">title</span> <span class="n">type</span><span class="o">=</span><span class="s">&quot;html&quot;</span><span class="o">&gt;&lt;!</span><span class="p">[</span><span class="n">CDATA</span><span class="p">[</span><span class="n">Building</span> <span class="n">Linux</span> <span class="n">Kernel</span> <span class="n">Module</span><span class="p">]]</span><span class="o">&gt;&lt;/</span><span class="n">title</span><span class="o">&gt;</span>
-</span><span class='line'>    <span class="o">&lt;</span><span class="n">link</span> <span class="n">href</span><span class="o">=</span><span class="s">&quot;https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module/&quot;</span><span class="o">/&gt;</span>
-</span><span class='line'>    <span class="o">&lt;</span><span class="n">updated</span><span class="o">&gt;</span><span class="mi">2018</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">23</span><span class="nl">T10</span><span class="p">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">28</span><span class="o">+</span><span class="mi">08</span><span class="o">:</span><span class="mo">00</span><span class="o">&lt;/</span><span class="n">updated</span><span class="o">&gt;</span>
-</span><span class='line'>    <span class="o">&lt;</span><span class="n">id</span><span class="o">&gt;</span><span class="nl">https</span><span class="p">:</span><span class="c1">//www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module&lt;/id&gt;</span>
-</span><span class='line'>    <span class="o">&lt;</span><span class="n">content</span> <span class="n">type</span><span class="o">=</span><span class="s">&quot;html&quot;</span><span class="o">&gt;&lt;!</span><span class="p">[</span><span class="n">CDATA</span><span class="p">[</span><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="n">Overview</span><span class="o">&lt;/</span><span class="n">h2</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="n">What</span> <span class="n">is</span> <span class="n">Linux</span> <span class="n">loadable</span> <span class="n">kernel</span> <span class="n">module</span><span class="p">(</span><span class="n">LKM</span><span class="p">)</span><span class="o">?&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">A</span> <span class="n">loadable</span> <span class="n">kernel</span> <span class="n">module</span> <span class="p">(</span><span class="n">LKM</span><span class="p">)</span> <span class="n">is</span> <span class="n">a</span> <span class="n">mechanism</span> <span class="k">for</span> <span class="n">adding</span><span class="o">/</span><span class="n">removing</span> <span class="n">code</span> <span class="n">from</span> <span class="n">Linux</span> <span class="n">kernel</span> <span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">at</span> <span class="n">run</span> <span class="n">time</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span><span class="p">.</span>
-</span><span class='line'><span class="n">Many</span> <span class="n">of</span> <span class="n">device</span> <span class="n">drivers</span> <span class="n">are</span> <span class="n">implemented</span> <span class="n">through</span> <span class="n">this</span> <span class="n">way</span><span class="p">,</span> <span class="n">otherwise</span> <span class="n">the</span> <span class="n">monolithic</span> <span class="n">kernel</span> <span class="n">would</span> <span class="n">be</span> <span class="n">too</span> <span class="n">large</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">LKM</span> <span class="n">communicates</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">space</span> <span class="n">applications</span> <span class="n">through</span> <span class="n">system</span> <span class="n">calls</span><span class="p">,</span> <span class="n">and</span> <span class="n">it</span> <span class="n">can</span> <span class="n">access</span> <span class="n">almost</span> <span class="n">all</span> <span class="n">the</span> <span class="n">objects</span><span class="o">/</span><span class="n">services</span> <span class="n">of</span> <span class="n">the</span> <span class="n">kernel</span><span class="p">.</span>
-</span><span class='line'><span class="n">LKM</span> <span class="n">can</span> <span class="n">be</span> <span class="n">inserted</span> <span class="n">to</span> <span class="n">the</span> <span class="n">monolithic</span> <span class="n">kernel</span> <span class="n">at</span> <span class="n">any</span> <span class="n">time</span> <span class="o">&amp;</span><span class="n">ndash</span><span class="p">;</span> <span class="n">usually</span> <span class="n">at</span> <span class="n">booting</span> <span class="n">or</span> <span class="n">running</span> <span class="n">phase</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Writing</span> <span class="n">LKM</span> <span class="n">has</span> <span class="n">many</span> <span class="n">advantages</span> <span class="n">against</span> <span class="n">directly</span> <span class="n">tweaking</span> <span class="n">the</span> <span class="n">whole</span> <span class="n">kernel</span><span class="p">.</span> <span class="n">For</span> <span class="n">LKM</span> <span class="n">can</span> <span class="n">be</span> <span class="n">dynamically</span> <span class="n">inserted</span> <span class="n">or</span> <span class="n">removed</span> <span class="n">at</span> <span class="n">run</span> <span class="n">time</span><span class="p">,</span> <span class="n">we</span> <span class="n">don</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">t</span> <span class="n">need</span> <span class="n">to</span> <span class="n">recompile</span> <span class="n">the</span> <span class="n">whole</span> <span class="n">kernel</span> <span class="n">nor</span> <span class="n">reboot</span><span class="p">,</span> <span class="n">and</span> <span class="n">it</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">s</span> <span class="n">more</span> <span class="n">shippable</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">So</span><span class="p">,</span> <span class="n">the</span> <span class="n">easiest</span> <span class="n">way</span> <span class="n">to</span> <span class="n">start</span> <span class="n">kernel</span> <span class="n">programming</span> <span class="n">is</span> <span class="n">to</span> <span class="n">write</span> <span class="n">a</span> <span class="n">module</span> <span class="o">-</span> <span class="n">a</span> <span class="n">piece</span> <span class="n">of</span> <span class="n">code</span> <span class="n">that</span> <span class="n">can</span> <span class="n">be</span> <span class="n">dynamically</span> <span class="n">loaded</span> <span class="n">into</span> <span class="n">the</span> <span class="n">kernel</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="n">How</span> <span class="n">is</span> <span class="n">the</span> <span class="n">LKM</span> <span class="n">different</span> <span class="n">from</span> <span class="n">an</span> <span class="n">user</span><span class="o">-</span><span class="n">space</span> <span class="n">application</span><span class="o">?&lt;/</span><span class="n">li</span><span class="o">&gt;</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">ul</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">LKM</span> <span class="n">is</span> <span class="n">run</span> <span class="n">in</span> <span class="n">kernel</span> <span class="n">space</span><span class="p">,</span> <span class="n">which</span> <span class="n">is</span> <span class="n">quite</span> <span class="n">different</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">First</span> <span class="n">off</span><span class="p">,</span> <span class="n">the</span> <span class="n">code</span> <span class="n">is</span> <span class="n">always</span> <span class="n">asynchronous</span><span class="p">,</span> <span class="n">which</span> <span class="n">means</span> <span class="n">it</span> <span class="n">doesn</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">t</span> <span class="n">execute</span> <span class="n">sequentially</span> <span class="n">and</span> <span class="n">may</span> <span class="n">be</span> <span class="n">interrupted</span> <span class="n">at</span> <span class="n">any</span> <span class="n">time</span><span class="p">.</span> <span class="n">Thus</span> <span class="n">programmers</span> <span class="n">should</span> <span class="n">always</span> <span class="n">care</span> <span class="n">about</span> <span class="n">the</span> <span class="n">concurrency</span> <span class="n">as</span> <span class="n">well</span> <span class="n">as</span> <span class="n">reentrant</span> <span class="n">issues</span><span class="p">.</span> <span class="n">Unlike</span> <span class="n">user</span><span class="o">-</span><span class="n">space</span> <span class="n">application</span><span class="p">,</span> <span class="n">which</span> <span class="n">has</span> <span class="n">an</span> <span class="n">entry</span><span class="o">-</span><span class="n">point</span> <span class="n">like</span> <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">main</span><span class="p">()</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span> <span class="n">and</span> <span class="n">then</span> <span class="n">execute</span> <span class="n">and</span> <span class="n">exit</span><span class="p">,</span> <span class="n">the</span> <span class="n">LKM</span> <span class="n">is</span> <span class="n">more</span> <span class="n">like</span> <span class="n">a</span> <span class="n">complicated</span> <span class="n">event</span><span class="o">-</span><span class="n">driven</span> <span class="n">server</span> <span class="n">that</span> <span class="n">internally</span> <span class="n">has</span> <span class="n">the</span> <span class="n">ability</span> <span class="n">to</span> <span class="n">interact</span> <span class="n">with</span> <span class="n">various</span> <span class="n">kernel</span> <span class="n">services</span><span class="p">,</span> <span class="n">and</span> <span class="n">externally</span> <span class="n">provides</span> <span class="n">system</span> <span class="n">calls</span> <span class="n">as</span> <span class="n">its</span> <span class="n">user</span><span class="o">-</span><span class="n">space</span> <span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">api</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Secondly</span><span class="p">,</span> <span class="n">there</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">s</span> <span class="n">only</span> <span class="n">a</span> <span class="n">fixed</span> <span class="n">and</span> <span class="n">small</span> <span class="n">stack</span><span class="p">,</span> <span class="n">resource</span> <span class="n">cleanup</span> <span class="n">as</span> <span class="n">well</span> <span class="n">as</span> <span class="n">utilization</span> <span class="n">should</span> <span class="n">always</span> <span class="n">be</span> <span class="n">highly</span> <span class="n">considered</span><span class="p">.</span> <span class="n">While</span> <span class="n">as</span> <span class="k">for</span> <span class="n">the</span> <span class="n">user</span><span class="o">-</span><span class="n">space</span> <span class="n">application</span><span class="p">,</span> <span class="n">the</span> <span class="n">resource</span> <span class="n">quota</span> <span class="n">is</span> <span class="n">fairly</span> <span class="n">sufficient</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Thirdly</span><span class="p">,</span> <span class="n">note</span> <span class="n">that</span> <span class="n">there</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;</span><span class="n">s</span> <span class="n">no</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">math</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="n">Prepare</span> <span class="n">Headers</span><span class="o">&lt;/</span><span class="n">h2</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span> <span class="n">class</span><span class="o">=</span><span class="s">&quot;sh&quot;</span><span class="o">&gt;</span><span class="n">apt</span> <span class="n">search</span> <span class="n">linux</span><span class="o">-</span><span class="n">headers</span><span class="o">-</span><span class="err">$</span><span class="p">(</span><span class="n">uname</span> <span class="o">-</span><span class="n">r</span><span class="p">)</span>
-</span><span class='line'><span class="cp"># get our kernel release: 4.18.0.kali2-amd64</span>
-</span><span class='line'><span class="n">apt</span> <span class="n">install</span> <span class="n">linux</span><span class="o">-</span><span class="n">headers</span><span class="o">-</span><span class="mf">4.18.0</span><span class="p">.</span><span class="n">kali2</span><span class="o">-</span><span class="n">amd64</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">h2</span><span class="o">&gt;</span><span class="n">Simple</span> <span class="n">Module</span> <span class="n">Code</span><span class="o">&lt;/</span><span class="n">h2</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">hello</span><span class="p">.</span><span class="n">c</span><span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span> <span class="n">class</span><span class="o">=</span><span class="s">&quot;c&quot;</span><span class="o">&gt;</span><span class="err">#</span><span class="n">include</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">linux</span><span class="o">/</span><span class="n">module</span><span class="p">.</span><span class="n">h</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">MODULE_LICENSE</span><span class="p">(</span><span class="s">&quot;GPL&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">MODULE_AUTHOR</span><span class="p">(</span><span class="s">&quot;Brooke Yang&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">MODULE_DESCRIPTION</span><span class="p">(</span><span class="s">&quot;A simple Linux moadable mernel module&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="n">MODULE_VERSION</span><span class="p">(</span><span class="s">&quot;0.1&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="kt">char</span> <span class="o">*</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;world&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="n">module_param</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">charp</span><span class="p">,</span> <span class="n">S_IRUGO</span><span class="p">);</span>
-</span><span class='line'><span class="n">MODULE_PARM_DESC</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;The name to display&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="kt">int</span> <span class="n">__init</span> <span class="nf">hello_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">pr_info</span><span class="p">(</span><span class="s">&quot;HELLO: Hello, %s!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">static</span> <span class="kt">void</span> <span class="n">__exit</span> <span class="nf">hello_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">pr_info</span><span class="p">(</span><span class="s">&quot;HELLO: Bye-bye, %s!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">module_init</span><span class="p">(</span><span class="n">hello_init</span><span class="p">);</span>
-</span><span class='line'><span class="n">module_exit</span><span class="p">(</span><span class="n">hello_exit</span><span class="p">);</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">pr_info</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span> <span class="n">is</span> <span class="n">a</span> <span class="n">more</span> <span class="n">convenient</span> <span class="n">way</span> <span class="n">of</span> <span class="n">debugging</span><span class="p">,</span> <span class="n">comparing</span> <span class="n">to</span> <span class="n">the</span> <span class="n">old</span><span class="o">-</span><span class="n">style</span> <span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">printk</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span><span class="p">.</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">sh</span>
-</span><span class='line'><span class="n">printk</span><span class="p">(</span><span class="n">KERN_INFO</span> <span class="p">...);</span>
-</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">Makefile</span><span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure>makefile
+```
+ulimit -n 1048576</p>
+
+<h1>1048576 is the default maximum for open files, as <code>/proc/sys/fs/nr_open</code> shows.</h1>
+
+<h1>To make it larger, you need to tweak kernel settings like this (which is beyond our scope)</h1>
+
+<h1>sysctl -w fs.nr_open=10485760</h1>
+
+<p>```
+Since the info of stdout is so much that we redirect the stdout to file <em>log</em>.
+<img src="/images/worker-pool-with-eventfd/eventfd_worker_execution_spike.gif" alt="" /></p>
+
+<p>With my test VM (S2.Medium4 type on <a href="https://cloud.tencent.com/">TencentCloud</a>, which has only 2 vCPU and 4G memory, it takes less than 6.5 seconds to deal with 1 million concurrent (almost) events. And we&rsquo;ve seen the kernel-implemented counters and wait queue are quite efficient.</p>
+
+<h2>Conclusions</h2>
+
+<p>Multi-threaded programming model is prevailing now, while the best way of scheduling (event trigger and dispatching method) is still under discussion and sometimes even opinionated.
+In this post, we&rsquo;ve implemented general-purposed worker thread pool based on an advanced message mechanism, which includes:</p>
+
+<ol>
+<li>message notification: asynchronous delivering, extremely low overhead, high performance</li>
+<li>message dispatching: as a load balancer, highly scalable</li>
+<li>message buffering: as message queue, with robustness</li>
+</ol>
+
+
+<p>All the above are fulfilled by using basic Linux kernel feature/syscall, like <code>epoll</code> and <code>eventfd</code>.
+Everyone may refers to this approach when he/she designs a single-process performant (especially IO-bound) background service.</p>
+
+<p>To sum up, taking advantage of Linux kernel capability, we are now managed to implement our high-performance message-based worker pool, which is able to deal with large throughput and of high scalability.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://linux.die.net/man/2/eventfd">eventfd(2) - Linux Man Page</a></li>
+<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/eventpoll.c">eventpoll - Linux Source Code</a></li>
+<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/eventfd.c">eventfd - Linux Source Code</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Building Linux Kernel Module]]></title>
+    <link href="https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module/"/>
+    <updated>2018-10-23T10:30:28+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2018/10/23/building-linux-kernel-module</id>
+    <content type="html"><![CDATA[<h2>Overview</h2>
+
+<ul>
+<li>What is Linux loadable kernel module(LKM)?</li>
+</ul>
+
+
+<p>A loadable kernel module (LKM) is a mechanism for adding/removing code from Linux kernel <strong>at run time</strong>.
+Many of device drivers are implemented through this way, otherwise the monolithic kernel would be too large.</p>
+
+<p>LKM communicates with user-space applications through system calls, and it can access almost all the objects/services of the kernel.
+LKM can be inserted to the monolithic kernel at any time &ndash; usually at booting or running phase.</p>
+
+<p>Writing LKM has many advantages against directly tweaking the whole kernel. For LKM can be dynamically inserted or removed at run time, we don&rsquo;t need to recompile the whole kernel nor reboot, and it&rsquo;s more shippable.</p>
+
+<p>So, the easiest way to start kernel programming is to write a module - a piece of code that can be dynamically loaded into the kernel.</p>
+
+<ul>
+<li>How is the LKM different from an user-space application?</li>
+</ul>
+
+
+<p>LKM is run in kernel space, which is quite different.</p>
+
+<p>First off, the code is always asynchronous, which means it doesn&rsquo;t execute sequentially and may be interrupted at any time. Thus programmers should always care about the concurrency as well as reentrant issues. Unlike user-space application, which has an entry-point like <code>main()</code> and then execute and exit, the LKM is more like a complicated event-driven server that internally has the ability to interact with various kernel services, and externally provides system calls as its user-space <code>api</code>.</p>
+
+<p>Secondly, there&rsquo;s only a fixed and small stack, resource cleanup as well as utilization should always be highly considered. While as for the user-space application, the resource quota is fairly sufficient.</p>
+
+<p>Thirdly, note that there&rsquo;s no floating-point math.</p>
+
+<h2>Prepare Headers</h2>
+
+<pre><code class="sh">apt search linux-headers-$(uname -r)
+# get our kernel release: 4.18.0.kali2-amd64
+apt install linux-headers-4.18.0.kali2-amd64
+</code></pre>
+
+<h2>Simple Module Code</h2>
+
+<p><em>hello.c</em></p>
+
+<pre><code class="c">#include &lt;linux/module.h&gt;
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Brooke Yang");
+MODULE_DESCRIPTION("A simple Linux moadable mernel module");
+MODULE_VERSION("0.1");
+
+static char *name = "world";
+module_param(name, charp, S_IRUGO);
+MODULE_PARM_DESC(name, "The name to display");
+
+static int __init hello_init(void) {
+    pr_info("HELLO: Hello, %s!\n", name);
+    return 0;
+}
+
+static void __exit hello_exit(void) {
+    pr_info("HELLO: Bye-bye, %s!\n", name);
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+</code></pre>
+
+<p><strong>pr_info</strong> is a more convenient way of debugging, comparing to the old-style <strong>printk</strong>.
+<code>sh
+printk(KERN_INFO ...);  
+</code></p>
+
+<p><em>Makefile</em>
+```makefile
 obj-m+=hello.o</p>
 
 <p>all:
