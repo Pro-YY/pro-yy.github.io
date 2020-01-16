@@ -4,7 +4,7 @@
   <title><![CDATA[Category: node.js | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/node-dot-js/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-01-16T10:26:36+08:00</updated>
+  <updated>2020-01-16T10:39:15+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -27,168 +27,165 @@
 <h3>Node.js的module系统支持部分加载</h3>
 
 <p>代码实例如下：
-```javascript auth.js
-&lsquo;use strict&rsquo;;
-const user = require(&lsquo;./user&rsquo;);</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lsquo;use strict&rsquo;;
+</span><span class='line'>const user = require(&lsquo;./user&rsquo;);&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;console.log(&lsquo;# in auth: user is&rsquo;);
+</span><span class='line'>console.log(user);&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;function authenticate(name) {
+</span><span class='line'>    return user.find(name);
+</span><span class='line'>}&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;function enabled() {
+</span><span class='line'>    return true;
+</span><span class='line'>}&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;module.exports = {
+</span><span class='line'>    authenticate: authenticate,
+</span><span class='line'>    enabled: enabled
+</span><span class='line'>};&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;console.log(&lsquo;# auth loaded&rsquo;);</span></code></pre></td></tr></table></div></figure></p>
 
-<p>console.log(&lsquo;# in auth: user is&rsquo;);
-console.log(user);</p>
+<pre><code>'use strict';
+const message = require('./message');
 
-<p>function authenticate(name) {
-    return user.find(name);
-}</p>
+console.log('# in user: message is');
+console.log(message);
 
-<p>function enabled() {
-    return true;
-}</p>
-
-<p>module.exports = {
-    authenticate: authenticate,
-    enabled: enabled
-};</p>
-
-<p>console.log(&lsquo;# auth loaded&rsquo;);
-<code>
-</code>javascript user.js
-&lsquo;use strict&rsquo;;
-const message = require(&lsquo;./message&rsquo;);</p>
-
-<p>console.log(&lsquo;# in user: message is&rsquo;);
-console.log(message);</p>
-
-<p>function find(name) {
-    console.log(&lsquo;found user: &rsquo; + name);
+function find(name) {
+    console.log('found user: ' + name);
     message.hello(name);
     return name;
-}</p>
+}
 
-<p>module.exports = {
+module.exports = {
     find: find
-};</p>
+};
 
-<p>console.log(&lsquo;# user loaded&rsquo;);
-<code>
-</code>javascript message.js
-&lsquo;use strict&rsquo;;
-const auth = require(&lsquo;./auth&rsquo;);</p>
+console.log('# user loaded');
+</code></pre>
 
-<p>console.log(&lsquo;# in message: auth is&rsquo;);
-console.log(auth);</p>
+<pre><code>'use strict';
+const auth = require('./auth');
 
-<p>function hello(name) {
-    console.log(&lsquo;hello, &rsquo; + name);
-    // if (auth.enabled(name)) console.log(&lsquo;hello, &rsquo; + name);
-}</p>
-
-<p>module.exports = {
-    hello: hello
-};</p>
-
-<p>console.log(&lsquo;# message loaded&rsquo;);
-<code>
-</code>javascript main.js
-&lsquo;use strict&rsquo;;
-console.log(&lsquo;# main starting&rsquo;);
-const auth = require(&lsquo;./auth&rsquo;);
-console.log(&lsquo;# in main, auth is&rsquo;);
+console.log('# in message: auth is');
 console.log(auth);
-console.log(&lsquo;start running&hellip;&rsquo;);
-auth.authenticate(&lsquo;Alice&rsquo;);
-```</p>
 
-<p>运行结果
-```bash result</p>
+function hello(name) {
+    console.log('hello, ' + name);
+    // if (auth.enabled(name)) console.log('hello, ' + name);
+}
 
-<h1>main starting</h1>
+module.exports = {
+    hello: hello
+};
 
-<h1>in message: auth is</h1>
+console.log('# message loaded');
+</code></pre>
 
-<p>{}</p>
+<pre><code>'use strict';
+console.log('# main starting');
+const auth = require('./auth');
+console.log('# in main, auth is');
+console.log(auth);
+console.log('start running...');
+auth.authenticate('Alice');
+</code></pre>
 
-<h1>message loaded</h1>
+<p>运行结果</p>
 
-<h1>in user: message is</h1>
-
-<p>{ hello: [Function: hello] }</p>
-
-<h1>user loaded</h1>
-
-<h1>in auth: user is</h1>
-
-<p>{ find: [Function: find] }</p>
-
-<h1>auth loaded</h1>
-
-<h1>in main, auth is</h1>
-
-<p>{ authenticate: [Function: authenticate],
+<pre><code># main starting
+# in message: auth is
+{}
+# message loaded
+# in user: message is
+{ hello: [Function: hello] }
+# user loaded
+# in auth: user is
+{ find: [Function: find] }
+# auth loaded
+# in main, auth is
+{ authenticate: [Function: authenticate],
       enabled: [Function: enabled] }
-start running&hellip;
+start running...
 found user: Alice
 hello, Alice
-```
-三个模块的关系为：auth模块引用user模块，并调用了其导出的find的方法；user模块引用message模块，并调用其导出的hello方法；message模块引用auth模块，但没有调用其任何导出的方法。
+</code></pre>
+
+<p>三个模块的关系为：auth模块引用user模块，并调用了其导出的find的方法；user模块引用message模块，并调用其导出的hello方法；message模块引用auth模块，但没有调用其任何导出的方法。
 main模块引用了auth模块，并调用了其导出的authenticate方法。即程序存在模块循环依赖，但不存在循环模块引用（方法间的循环调用）。</p>
 
 <p>从结果我们可以看出：main函数应用auth模块时，vm根据require规则相继递归加载了user和message模块，message模块先完成全部加载（接着相继是user、auth、main）。注意到，在message加载时，由于auth模块尚未完成加载，在message模块内表现为一个临时的空对象，即部分加载。之后的main加载时，auth模块已经全部完成初始化加载过程，因此可以正常使用了。</p>
 
 <h2>问题引入</h2>
 
-<p>改变message中的hello方法实现（第8、9行），引入循环依赖。
-```javascript message.js
-&lsquo;use strict&rsquo;;
-const auth = require(&lsquo;./auth&rsquo;);</p>
+<p>改变message中的hello方法实现（第8、9行），引入循环依赖。</p>
 
-<p>console.log(&lsquo;# in message: auth is&rsquo;);
-console.log(auth);</p>
+<pre><code>'use strict';
+const auth = require('./auth');
 
-<p>function hello(name) {
-    // console.log(&lsquo;hello, &rsquo; + name);
-    if (auth.enabled(name)) console.log(&lsquo;hello, &rsquo; + name);
-}</p>
+console.log('# in message: auth is');
+console.log(auth);
 
-<p>module.exports = {
+function hello(name) {
+    // console.log('hello, ' + name);
+    if (auth.enabled(name)) console.log('hello, ' + name);
+}
+
+module.exports = {
     hello: hello
-};</p>
+};
 
-<p>console.log(&lsquo;# message loaded&rsquo;);
-<code>
-再次运行，结果如下
-</code>bash result</p>
+console.log('# message loaded');
+</code></pre>
 
-<h1>main starting</h1>
+<p>再次运行，结果如下</p>
 
-<h1>in message: auth is</h1>
-
-<p>{}</p>
-
-<h1>message loaded</h1>
-
-<h1>in user: message is</h1>
-
-<p>{ hello: [Function: hello] }</p>
-
-<h1>user loaded</h1>
-
-<h1>in auth: user is</h1>
-
-<p>{ find: [Function: find] }</p>
-
-<h1>auth loaded</h1>
-
-<h1>in main, auth is</h1>
-
-<p>{ authenticate: [Function: authenticate],
+<pre><code># main starting
+# in message: auth is
+{}
+# message loaded
+# in user: message is
+{ hello: [Function: hello] }
+# user loaded
+# in auth: user is
+{ find: [Function: find] }
+# auth loaded
+# in main, auth is
+{ authenticate: [Function: authenticate],
   enabled: [Function: enabled] }
-start running&hellip;
+start running...
 found user: Alice
 /xxxx/xxxxx/xxxxx/xxxx/message.js:8
-    if (auth.enabled(name)) console.log(&lsquo;hello, &rsquo; + name);
-             ^</p>
+    if (auth.enabled(name)) console.log('hello, ' + name);
+             ^
 
-<p>TypeError: auth.enabled is not a function
-```
-有了之前的分析，错误的原因也就不难分析了：message模块加载时，auth模块还未初始化完成，即此时还未用已经初始化完成的正确对象来覆盖module.exports对象，从临时的空对象里当然就找不到enabled方法。</p>
+TypeError: auth.enabled is not a function
+</code></pre>
+
+<p>有了之前的分析，错误的原因也就不难分析了：message模块加载时，auth模块还未初始化完成，即此时还未用已经初始化完成的正确对象来覆盖module.exports对象，从临时的空对象里当然就找不到enabled方法。</p>
 
 <h2>循环依赖解决</h2>
 
@@ -197,97 +194,86 @@ found user: Alice
 <h3>前置模块导出</h3>
 
 <p>前置模块导出的方法，可以做到将模块方法的定义和挂载延迟到运行时，而非在模块第一次加载完成后再用一个变量统一覆盖掉module.exports对象(像举例中的传统模块声明方法)。
-因此更高效地利用了部分加载的特性，让模块间彼此更加独立、协作更好。对于刚才的问题，具体的优化实现如下。
-```javascript auth.js
-&lsquo;use strict&rsquo;;
-const Module = module.exports;</p>
+因此更高效地利用了部分加载的特性，让模块间彼此更加独立、协作更好。对于刚才的问题，具体的优化实现如下。</p>
 
-<p>const user = require(&lsquo;./user&rsquo;);</p>
+<pre><code>'use strict';
+const Module = module.exports;
 
-<p>console.log(&lsquo;# in auth: user is&rsquo;);
-console.log(user);</p>
+const user = require('./user');
 
-<p>function authenticate(name) {
+console.log('# in auth: user is');
+console.log(user);
+
+function authenticate(name) {
     return user.find(name);
-}</p>
+}
 
-<p>function enabled() {
+function enabled() {
     return true;
-}</p>
+}
 
-<p>Module.authenticate = authenticate;
-Module.enabled = enabled;</p>
+Module.authenticate = authenticate;
+Module.enabled = enabled;
 
-<p>console.log(&lsquo;# auth loaded&rsquo;);
-<code>
-</code>javascript user.js
-&lsquo;use strict&rsquo;;
-const Module = module.exports;</p>
+console.log('# auth loaded');
+</code></pre>
 
-<p>const message = require(&lsquo;./message&rsquo;);</p>
+<pre><code>'use strict';
+const Module = module.exports;
 
-<p>console.log(&lsquo;# in user: message is&rsquo;);
-console.log(message);</p>
+const message = require('./message');
 
-<p>function find(name) {
-    console.log(&lsquo;found user: &rsquo; + name);
+console.log('# in user: message is');
+console.log(message);
+
+function find(name) {
+    console.log('found user: ' + name);
     message.hello(name);
     return name;
-}</p>
+}
 
-<p>Module.find = find;</p>
+Module.find = find;
 
-<p>console.log(&lsquo;# user loaded&rsquo;);
-<code>
-</code>javascript message.js
-&lsquo;use strict&rsquo;;
-const Module = module.exports;</p>
+console.log('# user loaded');
+</code></pre>
 
-<p>const auth = require(&lsquo;./auth&rsquo;);</p>
+<pre><code>'use strict';
+const Module = module.exports;
 
-<p>console.log(&lsquo;# in message: auth is&rsquo;);
-console.log(auth);</p>
+const auth = require('./auth');
 
-<p>function hello(name) {
-    //console.log(&lsquo;hello, &rsquo; + name);
-    if (auth.enabled(name)) console.log(&lsquo;hello, &rsquo; + name);
-}</p>
+console.log('# in message: auth is');
+console.log(auth);
 
-<p>Module.hello = hello;</p>
+function hello(name) {
+    //console.log('hello, ' + name);
+    if (auth.enabled(name)) console.log('hello, ' + name);
+}
 
-<p>console.log(&lsquo;# message loaded&rsquo;);
-<code>
-</code> bash result</p>
+Module.hello = hello;
 
-<h1>main starting</h1>
+console.log('# message loaded');
+</code></pre>
 
-<h1>in message: auth is</h1>
-
-<p>{}</p>
-
-<h1>message loaded</h1>
-
-<h1>in user: message is</h1>
-
-<p>{ hello: [Function: hello] }</p>
-
-<h1>user loaded</h1>
-
-<h1>in auth: user is</h1>
-
-<p>{ find: [Function: find] }</p>
-
-<h1>auth loaded</h1>
-
-<h1>in main, auth is</h1>
-
-<p>{ authenticate: [Function: authenticate],
+<pre><code># main starting
+# in message: auth is
+{}
+# message loaded
+# in user: message is
+{ hello: [Function: hello] }
+# user loaded
+# in auth: user is
+{ find: [Function: find] }
+# auth loaded
+# in main, auth is
+{ authenticate: [Function: authenticate],
   enabled: [Function: enabled] }
-start running&hellip;
+start running...
 found user: Alice
 hello, Alice
-```
-引用的错误解决，运行正确。</p>
+</code></pre>
+
+<p>引用的错误解决，运行正确。</p>
 
 <p>基于这种设计的模块前置导出技术，即“加载时先导出模块、运行时后实现方法”的模块实现思路，可应用于存在多模块间循环依赖引用的情况，从而方便实现逻辑关系更复杂的模块。</p>
 ]]></content>

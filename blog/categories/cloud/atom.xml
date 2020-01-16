@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Cloud | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-01-16T10:26:36+08:00</updated>
+  <updated>2020-01-16T10:39:15+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -52,19 +52,29 @@ pip3 install locustio
 </code></p>
 
 <p>Edit <em>locustfile.py</em>, the simplest one:
-```python
-from locust import HttpLocust, TaskSet, task</p>
-
-<p>class UserBehavior(TaskSet):
-    @task(1)
-    def index(self):
-        self.client.get(&ldquo;/&rdquo;)</p>
-
-<p>class WebsiteUser(HttpLocust):
-    task_set = UserBehavior
-    min_wait = 5000
-    max_wait = 9000
-```
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">locust</span> <span class="kn">import</span> <span class="n">HttpLocust</span><span class="p">,</span> <span class="n">TaskSet</span><span class="p">,</span> <span class="n">task</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">class</span> <span class="nc">UserBehavior</span><span class="p">(</span><span class="n">TaskSet</span><span class="p">):</span>
+</span><span class='line'>    <span class="nd">@task</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="o">/&amp;</span><span class="n">rdquo</span><span class="p">;)</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">class</span> <span class="nc">WebsiteUser</span><span class="p">(</span><span class="n">HttpLocust</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">task_set</span> <span class="o">=</span> <span class="n">UserBehavior</span>
+</span><span class='line'>    <span class="n">min_wait</span> <span class="o">=</span> <span class="mi">5000</span>
+</span><span class='line'>    <span class="n">max_wait</span> <span class="o">=</span> <span class="mi">9000</span>
+</span></code></pre></td></tr></table></div></figure>
 In fact, locust supports user scenarios by this kind of python script, which is very customizable.</p>
 
 <p>Start master

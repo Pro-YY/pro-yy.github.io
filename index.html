@@ -9,8 +9,7 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="Overview Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -99,38 +98,6 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2019/12/22/linux-ebpf-tracing/">Linux eBPF Tracing</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2019-12-22T21:59:00+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2019</span></span> <span class='time'>9:59 pm</span></time>
-        
-           | <a href="/blog/2019/12/22/linux-ebpf-tracing/#disqus_thread"
-             data-disqus-identifier="https://www.yangyang.cloud/blog/2019/12/22/linux-ebpf-tracing/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a></h1>
     
     
@@ -152,7 +119,9 @@
 
   <div class="entry-content"><h2>Overview</h2>
 
-<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS. It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH&hellip;) for resource isolation purposes.</p>
+<p>Seccomp (short for Secure Computing mode) is a computer security facility in the Linux kernel. It was merged into the Linux kernel mainline in kernel version 2.6.12, which was released on March 8, 2005. Seccomp allows a process to make a one-way transition into a &ldquo;secure&rdquo; state in which it cannot make some system calls. If it attempts, the kernel will terminate the process tith SIGSYS.
+Seccomp-BPF was released in 2012, providing more syscall filtering features on bpf.
+It is used in many sandbox-like applications (i.e. Chrome/Chromium, Firefox, Docker, QEMU, Android, Systemd, OpenSSH&hellip;) for resource isolation purposes.</p>
 
 <h2>Basic example</h2>
 
@@ -1765,7 +1734,7 @@ Removing kernel can also be done with dpkg.</p>
 
 <p>代码实例如下：</p>
 
-<figure class='code'><figcaption><span>auth.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1785,30 +1754,31 @@ Removing kernel can also be done with dpkg.</p>
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">user</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./user&#39;</span><span class="p">);</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const user = require('./user');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in auth: user is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">user</span><span class="p">);</span>
+</span><span class='line'>console.log('# in auth: user is');
+</span><span class='line'>console.log(user);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">authenticate</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nx">user</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function authenticate(name) {
+</span><span class='line'>    return user.find(name);
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">enabled</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function enabled() {
+</span><span class='line'>    return true;
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">authenticate</span><span class="o">:</span> <span class="nx">authenticate</span><span class="p">,</span>
-</span><span class='line'>    <span class="nx">enabled</span><span class="o">:</span> <span class="nx">enabled</span>
-</span><span class='line'><span class="p">};</span>
+</span><span class='line'>module.exports = {
+</span><span class='line'>    authenticate: authenticate,
+</span><span class='line'>    enabled: enabled
+</span><span class='line'>};
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# auth loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# auth loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>user.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1825,27 +1795,28 @@ Removing kernel can also be done with dpkg.</p>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./message&#39;</span><span class="p">);</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const message = require('./message');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in user: message is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+</span><span class='line'>console.log('# in user: message is');
+</span><span class='line'>console.log(message);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">find</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;found user: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">message</span><span class="p">.</span><span class="nx">hello</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nx">name</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function find(name) {
+</span><span class='line'>    console.log('found user: ' + name);
+</span><span class='line'>    message.hello(name);
+</span><span class='line'>    return name;
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">find</span><span class="o">:</span> <span class="nx">find</span>
-</span><span class='line'><span class="p">};</span>
+</span><span class='line'>module.exports = {
+</span><span class='line'>    find: find
+</span><span class='line'>};
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# user loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# user loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>message.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1861,45 +1832,45 @@ Removing kernel can also be done with dpkg.</p>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">auth</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./auth&#39;</span><span class="p">);</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const auth = require('./auth');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in message: auth is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">auth</span><span class="p">);</span>
+</span><span class='line'>console.log('# in message: auth is');
+</span><span class='line'>console.log(auth);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">hello</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;hello, &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="c1">// if (auth.enabled(name)) console.log(&#39;hello, &#39; + name);</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function hello(name) {
+</span><span class='line'>    console.log('hello, ' + name);
+</span><span class='line'>    // if (auth.enabled(name)) console.log('hello, ' + name);
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">hello</span><span class="o">:</span> <span class="nx">hello</span>
-</span><span class='line'><span class="p">};</span>
+</span><span class='line'>module.exports = {
+</span><span class='line'>    hello: hello
+</span><span class='line'>};
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# message loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# message loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>main.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# main starting&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">auth</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./auth&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in main, auth is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">auth</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;start running...&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">auth</span><span class="p">.</span><span class="nx">authenticate</span><span class="p">(</span><span class="s1">&#39;Alice&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>console.log('# main starting');
+</span><span class='line'>const auth = require('./auth');
+</span><span class='line'>console.log('# in main, auth is');
+</span><span class='line'>console.log(auth);
+</span><span class='line'>console.log('start running...');
+</span><span class='line'>auth.authenticate('Alice');</span></code></pre></td></tr></table></div></figure>
 
 
 <p>运行结果</p>
 
-<figure class='code'><figcaption><span>result</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1915,23 +1886,22 @@ Removing kernel can also be done with dpkg.</p>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># main starting</span>
-</span><span class='line'><span class="c"># in message: auth is</span>
-</span><span class='line'><span class="o">{}</span>
-</span><span class='line'><span class="c"># message loaded</span>
-</span><span class='line'><span class="c"># in user: message is</span>
-</span><span class='line'><span class="o">{</span> hello: <span class="o">[</span>Function: hello<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># user loaded</span>
-</span><span class='line'><span class="c"># in auth: user is</span>
-</span><span class='line'><span class="o">{</span> find: <span class="o">[</span>Function: find<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># auth loaded</span>
-</span><span class='line'><span class="c"># in main, auth is</span>
-</span><span class='line'><span class="o">{</span> authenticate: <span class="o">[</span>Function: authenticate<span class="o">]</span>,
-</span><span class='line'>      enabled: <span class="o">[</span>Function: enabled<span class="o">]</span> <span class="o">}</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># main starting
+</span><span class='line'># in message: auth is
+</span><span class='line'>{}
+</span><span class='line'># message loaded
+</span><span class='line'># in user: message is
+</span><span class='line'>{ hello: [Function: hello] }
+</span><span class='line'># user loaded
+</span><span class='line'># in auth: user is
+</span><span class='line'>{ find: [Function: find] }
+</span><span class='line'># auth loaded
+</span><span class='line'># in main, auth is
+</span><span class='line'>{ authenticate: [Function: authenticate],
+</span><span class='line'>      enabled: [Function: enabled] }
 </span><span class='line'>start running...
 </span><span class='line'>found user: Alice
-</span><span class='line'>hello, Alice
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>hello, Alice</span></code></pre></td></tr></table></div></figure>
 
 
 <p>三个模块的关系为：auth模块引用user模块，并调用了其导出的find的方法；user模块引用message模块，并调用其导出的hello方法；message模块引用auth模块，但没有调用其任何导出的方法。
@@ -1943,7 +1913,7 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 
 <p>改变message中的hello方法实现（第8、9行），引入循环依赖。</p>
 
-<figure class='code'><figcaption><span>message.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -1959,28 +1929,27 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">auth</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./auth&#39;</span><span class="p">);</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const auth = require('./auth');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in message: auth is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">auth</span><span class="p">);</span>
+</span><span class='line'>console.log('# in message: auth is');
+</span><span class='line'>console.log(auth);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">hello</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="c1">// console.log(&#39;hello, &#39; + name);</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">enabled</span><span class="p">(</span><span class="nx">name</span><span class="p">))</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;hello, &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function hello(name) {
+</span><span class='line'>    // console.log('hello, ' + name);
+</span><span class='line'>    if (auth.enabled(name)) console.log('hello, ' + name);
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">hello</span><span class="o">:</span> <span class="nx">hello</span>
-</span><span class='line'><span class="p">};</span>
+</span><span class='line'>module.exports = {
+</span><span class='line'>    hello: hello
+</span><span class='line'>};
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# message loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# message loaded');</span></code></pre></td></tr></table></div></figure>
 
 
 <p>再次运行，结果如下</p>
 
-<figure class='code'><figcaption><span>result</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -2000,27 +1969,26 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># main starting</span>
-</span><span class='line'><span class="c"># in message: auth is</span>
-</span><span class='line'><span class="o">{}</span>
-</span><span class='line'><span class="c"># message loaded</span>
-</span><span class='line'><span class="c"># in user: message is</span>
-</span><span class='line'><span class="o">{</span> hello: <span class="o">[</span>Function: hello<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># user loaded</span>
-</span><span class='line'><span class="c"># in auth: user is</span>
-</span><span class='line'><span class="o">{</span> find: <span class="o">[</span>Function: find<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># auth loaded</span>
-</span><span class='line'><span class="c"># in main, auth is</span>
-</span><span class='line'><span class="o">{</span> authenticate: <span class="o">[</span>Function: authenticate<span class="o">]</span>,
-</span><span class='line'>  enabled: <span class="o">[</span>Function: enabled<span class="o">]</span> <span class="o">}</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># main starting
+</span><span class='line'># in message: auth is
+</span><span class='line'>{}
+</span><span class='line'># message loaded
+</span><span class='line'># in user: message is
+</span><span class='line'>{ hello: [Function: hello] }
+</span><span class='line'># user loaded
+</span><span class='line'># in auth: user is
+</span><span class='line'>{ find: [Function: find] }
+</span><span class='line'># auth loaded
+</span><span class='line'># in main, auth is
+</span><span class='line'>{ authenticate: [Function: authenticate],
+</span><span class='line'>  enabled: [Function: enabled] }
 </span><span class='line'>start running...
 </span><span class='line'>found user: Alice
 </span><span class='line'>/xxxx/xxxxx/xxxxx/xxxx/message.js:8
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span>auth.enabled<span class="o">(</span>name<span class="o">))</span> console.log<span class="o">(</span><span class="s1">&#39;hello, &#39;</span> + name<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>    if (auth.enabled(name)) console.log('hello, ' + name);
 </span><span class='line'>             ^
 </span><span class='line'>
-</span><span class='line'>TypeError: auth.enabled is not a <span class="k">function</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>TypeError: auth.enabled is not a function</span></code></pre></td></tr></table></div></figure>
 
 
 <p>有了之前的分析，错误的原因也就不难分析了：message模块加载时，auth模块还未初始化完成，即此时还未用已经初始化完成的正确对象来覆盖module.exports对象，从临时的空对象里当然就找不到enabled方法。</p>
@@ -2034,7 +2002,7 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <p>前置模块导出的方法，可以做到将模块方法的定义和挂载延迟到运行时，而非在模块第一次加载完成后再用一个变量统一覆盖掉module.exports对象(像举例中的传统模块声明方法)。
 因此更高效地利用了部分加载的特性，让模块间彼此更加独立、协作更好。对于刚才的问题，具体的优化实现如下。</p>
 
-<figure class='code'><figcaption><span>auth.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -2054,30 +2022,31 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">Module</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const Module = module.exports;
 </span><span class='line'>
-</span><span class='line'><span class="kr">const</span> <span class="nx">user</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./user&#39;</span><span class="p">);</span>
+</span><span class='line'>const user = require('./user');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in auth: user is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">user</span><span class="p">);</span>
+</span><span class='line'>console.log('# in auth: user is');
+</span><span class='line'>console.log(user);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">authenticate</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nx">user</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function authenticate(name) {
+</span><span class='line'>    return user.find(name);
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">enabled</span><span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function enabled() {
+</span><span class='line'>    return true;
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">Module</span><span class="p">.</span><span class="nx">authenticate</span> <span class="o">=</span> <span class="nx">authenticate</span><span class="p">;</span>
-</span><span class='line'><span class="nx">Module</span><span class="p">.</span><span class="nx">enabled</span> <span class="o">=</span> <span class="nx">enabled</span><span class="p">;</span>
+</span><span class='line'>Module.authenticate = authenticate;
+</span><span class='line'>Module.enabled = enabled;
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# auth loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# auth loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>user.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -2094,27 +2063,28 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">Module</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const Module = module.exports;
 </span><span class='line'>
-</span><span class='line'><span class="kr">const</span> <span class="nx">message</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./message&#39;</span><span class="p">);</span>
+</span><span class='line'>const message = require('./message');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in user: message is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+</span><span class='line'>console.log('# in user: message is');
+</span><span class='line'>console.log(message);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">find</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;found user: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">message</span><span class="p">.</span><span class="nx">hello</span><span class="p">(</span><span class="nx">name</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nx">name</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function find(name) {
+</span><span class='line'>    console.log('found user: ' + name);
+</span><span class='line'>    message.hello(name);
+</span><span class='line'>    return name;
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">Module</span><span class="p">.</span><span class="nx">find</span> <span class="o">=</span> <span class="nx">find</span><span class="p">;</span>
+</span><span class='line'>Module.find = find;
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# user loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# user loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>message.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -2130,26 +2100,27 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
-</span><span class='line'><span class="kr">const</span> <span class="nx">Module</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'use strict';
+</span><span class='line'>const Module = module.exports;
 </span><span class='line'>
-</span><span class='line'><span class="kr">const</span> <span class="nx">auth</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./auth&#39;</span><span class="p">);</span>
+</span><span class='line'>const auth = require('./auth');
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# in message: auth is&#39;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">auth</span><span class="p">);</span>
+</span><span class='line'>console.log('# in message: auth is');
+</span><span class='line'>console.log(auth);
 </span><span class='line'>
-</span><span class='line'><span class="kd">function</span> <span class="nx">hello</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="c1">//console.log(&#39;hello, &#39; + name);</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">enabled</span><span class="p">(</span><span class="nx">name</span><span class="p">))</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;hello, &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'>function hello(name) {
+</span><span class='line'>    //console.log('hello, ' + name);
+</span><span class='line'>    if (auth.enabled(name)) console.log('hello, ' + name);
+</span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'><span class="nx">Module</span><span class="p">.</span><span class="nx">hello</span> <span class="o">=</span> <span class="nx">hello</span><span class="p">;</span>
+</span><span class='line'>Module.hello = hello;
 </span><span class='line'>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;# message loaded&#39;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>console.log('# message loaded');</span></code></pre></td></tr></table></div></figure>
 
 
-<figure class='code'><figcaption><span>result</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -2165,23 +2136,22 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># main starting</span>
-</span><span class='line'><span class="c"># in message: auth is</span>
-</span><span class='line'><span class="o">{}</span>
-</span><span class='line'><span class="c"># message loaded</span>
-</span><span class='line'><span class="c"># in user: message is</span>
-</span><span class='line'><span class="o">{</span> hello: <span class="o">[</span>Function: hello<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># user loaded</span>
-</span><span class='line'><span class="c"># in auth: user is</span>
-</span><span class='line'><span class="o">{</span> find: <span class="o">[</span>Function: find<span class="o">]</span> <span class="o">}</span>
-</span><span class='line'><span class="c"># auth loaded</span>
-</span><span class='line'><span class="c"># in main, auth is</span>
-</span><span class='line'><span class="o">{</span> authenticate: <span class="o">[</span>Function: authenticate<span class="o">]</span>,
-</span><span class='line'>  enabled: <span class="o">[</span>Function: enabled<span class="o">]</span> <span class="o">}</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># main starting
+</span><span class='line'># in message: auth is
+</span><span class='line'>{}
+</span><span class='line'># message loaded
+</span><span class='line'># in user: message is
+</span><span class='line'>{ hello: [Function: hello] }
+</span><span class='line'># user loaded
+</span><span class='line'># in auth: user is
+</span><span class='line'>{ find: [Function: find] }
+</span><span class='line'># auth loaded
+</span><span class='line'># in main, auth is
+</span><span class='line'>{ authenticate: [Function: authenticate],
+</span><span class='line'>  enabled: [Function: enabled] }
 </span><span class='line'>start running...
 </span><span class='line'>found user: Alice
-</span><span class='line'>hello, Alice
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>hello, Alice</span></code></pre></td></tr></table></div></figure>
 
 
 <p>引用的错误解决，运行正确。</p>
@@ -2384,6 +2354,289 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-09-10T19:29:24+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>7:29 pm</span></time>
+        
+           | <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Test Case</h2>
+
+<p>For test-driven development, the test case always comes first. The <strong>Phone</strong> inherits the Node.js <strong>EventEmitter</strong>: a phone <strong>is a</strong> customized event emitter, only augmented with its own properties and methods.</p>
+
+<p>A phone has its own <em>name</em>, can <em>powerOn</em> itself.
+Since it&rsquo;s an event emitter, it can emit &lsquo;income&rsquo; event, and can set the handler by <em>addListener</em> as event emitter.</p>
+
+<figure class='code'><figcaption><span>test.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//var Phone = require(&#39;./phone-es5&#39;);</span>
+</span><span class='line'><span class="c1">//var Phone = require(&#39;./phone-util&#39;);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">Phone</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./phone-es6&#39;</span><span class="p">);</span>   <span class="c1">// all implementation should have same interface</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">p1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Phone</span><span class="p">(</span><span class="s1">&#39;p1&#39;</span><span class="p">);</span>             <span class="c1">// class instantiation with parameter</span>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">powerOn</span><span class="p">();</span>                         <span class="c1">// invoke instance methodl</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span> <span class="k">instanceof</span> <span class="nx">Phone</span><span class="p">);</span>     <span class="c1">// test ISA object of super class</span>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span> <span class="k">instanceof</span> <span class="nx">EventEmitter</span><span class="p">);</span>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span><span class="p">);</span>                      <span class="c1">// print instance at run-time</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">incomeListener</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;incomming call from: &#39;</span> <span class="o">+</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">incomeListener</span><span class="p">);</span>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">income</span><span class="p">(</span><span class="s1">&#39;+4478123456&#39;</span><span class="p">);</span>             <span class="c1">// invoke instance method</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span><span class="p">(</span><span class="s1">&#39;xiaomi&#39;</span><span class="p">);</span>               <span class="c1">// static/class method</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Expect the following desired output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Phone instance method] p1 is powered on.
+</span><span class='line'>true
+</span><span class='line'>true
+</span><span class='line'>Phone {
+</span><span class='line'>  domain: null,
+</span><span class='line'>  _events: {},
+</span><span class='line'>  _eventsCount: 0,
+</span><span class='line'>  _maxListeners: 20,
+</span><span class='line'>  name: 'p1' }
+</span><span class='line'>incomming call from: +4478123456
+</span><span class='line'>[Phone static method] vendor: xiaomi</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Prototype-Based Inheritance in ES5</h2>
+
+<p>In fact, javascript object is prototype-based, there isn&rsquo;t <em>class</em> at all, everything in javascript is object.
+There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new object), rather than <em>Class Inheritance</em> (create new subclass that inherits the parent class).
+To implement Inheritance is to build/extend the appropriate prototype chain.
+The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate traditional textbook or java-like class or inheritance.</p>
+
+<figure class='code'><figcaption><span>phone-es5.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span>
+</span><span class='line'><span class="c1">// same as: Phone.prototype = Object.create(EventEmitter.prototype);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">income</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone static method] vendor: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Using Node.js util.inherits</h2>
+
+<p>Node.js util module provides syntactical sugar for easily implemention of class-like inheritance.</p>
+
+<figure class='code'><figcaption><span>phone-util.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;util&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">util</span><span class="p">.</span><span class="nx">inherits</span><span class="p">(</span><span class="nx">Phone</span><span class="p">,</span> <span class="nx">EventEmitter</span><span class="p">);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">income</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone static method] vendor: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>util.inherits levarages Object.create() of ES5, the inherits line equals to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">super_</span> <span class="o">=</span> <span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">constructor</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">value</span><span class="o">:</span> <span class="nx">Phone</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">enumerable</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">writable</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">configurable</span><span class="o">:</span> <span class="kc">true</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Class Syntax of ES6</h2>
+
+<p>From node-v4.0, lots of ES6 features are implemented by default(shipping). Such as <em>block scoping</em>, <em>collections</em>, <em>promises</em> and <em>Arrow Functions</em>. And <em>Class</em> syntax is also fully supported. But, note that <em>class</em> is just another syntactical sugar:</p>
+
+<blockquote><p>JavaScript classes are introduced in ECMAScript 6 and are syntactical sugar over JavaScript's existing prototype-based inheritance.<br/>The class syntax is not introducing a new object-oriented inheritance model to JavaScript.<br/>JavaScript classes provide a much simpler and clearer syntax to create objects and deal with inheritance.</p></blockquote>
+
+
+<p>With <em>class</em> syntax, class/inheritance can be implemented in a more straightforward manner.</p>
+
+<figure class='code'><figcaption><span>phone-es6.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">class</span> <span class="nx">Phone</span> <span class="kr">extends</span> <span class="nx">EventEmitter</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">constructor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kr">super</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="nx">powerOn</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="nx">income</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="kr">static</span> <span class="nx">vendor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="err">`</span><span class="p">[</span><span class="nx">Phone</span> <span class="kr">static</span> <span class="nx">method</span><span class="p">]</span> <span class="nx">vendor</span><span class="o">:</span> <span class="nx">$</span><span class="p">{</span><span class="nx">name</span><span class="p">}</span><span class="err">`</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: &lsquo;use strict&rsquo; is required, and we use the template string syntax in static method (class method).
+And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em>function</em> in strict mode) cannot be hoisted, unlike <em>var</em> and <em>function</em>.</p>
+
+<p>In summary, with ES6 support in Node.js v4.0, class inheritance has never been more easier. So, let&rsquo;s embrace ES6.</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -2401,10 +2654,6 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2019/12/22/linux-ebpf-tracing/">Linux eBPF Tracing</a>
-      </li>
     
       <li class="post">
         <a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a>
@@ -2440,6 +2689,10 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
     
       <li class="post">
         <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
       </li>
     
   </ul>
@@ -2491,7 +2744,7 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-  Copyright &copy; 2019 - BrookeYang(杨阳)
+  Copyright &copy; 2020 - BrookeYang(杨阳)
   <!-- <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -->
 </p>
 
