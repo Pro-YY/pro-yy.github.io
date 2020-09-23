@@ -5,12 +5,14 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Session With Express and Nginx - Brooke's Notes</title>
+  <title>[Solved] Shadowsocks: Undefined Symbol - Brooke's Notes</title>
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="为什么一定要持久化存储会话信息 如果会话信息仅仅存储在内存&hellip; 服务器重启，用户将会登出
-无法在多个node进程(或集群环境)中共享会话 所以，会话(无论是HTTP会话还是Web-Socket会话)都需要在服务器端持久化存储在数据库中，如Redis/Mongo。 环境： Express &hellip;">
+  <meta name="description" content="Error: undefined symbol EVP_CIPHER_CTX_cleanup After installing shadowsocks on Ubuntu cloud server: 1
+2
+sudo apt install python3-pip
+sudo pip3 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +21,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/">
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Brooke's Notes" type="application/atom+xml">
@@ -96,7 +98,7 @@
   
   <header>
     
-      <h1 class="entry-title">Session With Express and Nginx</h1>
+      <h1 class="entry-title">[Solved] Shadowsocks: Undefined Symbol</h1>
     
     
       <p class="meta">
@@ -105,7 +107,7 @@
 
 
 
-<time class='entry-date' datetime='2015-07-17T17:12:56+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:12 pm</span></time>
+<time class='entry-date' datetime='2020-09-23T15:03:22+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2020</span></span> <span class='time'>3:03 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
@@ -115,128 +117,23 @@
   </header>
 
 
-<div class="entry-content"><h2>为什么一定要持久化存储会话信息</h2>
+<div class="entry-content"><h3>Error: undefined symbol EVP_CIPHER_CTX_cleanup</h3>
 
-<p>如果会话信息仅仅存储在内存&hellip;</p>
-
-<ul>
-<li>服务器重启，用户将会登出</li>
-<li>无法在多个node进程(或集群环境)中共享会话</li>
-</ul>
-
-
-<p>所以，会话(无论是HTTP会话还是Web-Socket会话)都需要在服务器端持久化存储在数据库中，如Redis/Mongo。</p>
-
-<p>环境： Express 4.12.2， Nginx 1.8.0</p>
-
-<h2>Express添加Redis会话存储</h2>
-
-<p>需要的相关库或组件：</p>
-
-<ul>
-<li><a href="https://www.npmjs.com/package/connect-redis">connect-redis</a>: Redis会话存储。</li>
-<li><a href="https://www.npmjs.com/package/socket.io-redis">socket.io-redis</a>: 多个socket.io进程实例可以彼此触发/广播事件。</li>
-</ul>
-
+<p>After installing shadowsocks on Ubuntu cloud server:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var http = require('http');
-</span><span class='line'>var socketio = require('socket.io');
-</span><span class='line'>var session = require('express-session');           // 会话支持
-</span><span class='line'>var passport = require('passport');                 // 身份认证，依赖express-session
-</span><span class='line'>var RedisStore = require('connect-redis')(session); // redis存储，用于持久化会话
-</span><span class='line'>var RedisAdapter = require('socket.io-redis');      // 存储web-socket的连接
-</span><span class='line'>var mongoose = require('mongoose');
-</span><span class='line'>// ...
-</span><span class='line'>var app = express();
-</span><span class='line'>var server = http.Server(app);
-</span><span class='line'>var sio = socketio(server);</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt install python3-pip
+</span><span class='line'>sudo pip3 install shadowsocks</span></code></pre></td></tr></table></div></figure>
 
 
-<p>配置Redis会话存储HTTP会话</p>
+<p>It should be easy for us to start server like:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var sessionMiddleware = session({
-</span><span class='line'>  name: 'XXX:sess',
-</span><span class='line'>  secret: 'XXX',
-</span><span class='line'>  proxy: true,
-</span><span class='line'>  resave: false,
-</span><span class='line'>  store: new RedisStore(),
-</span><span class='line'>  saveUninitialized: false,
-</span><span class='line'>  cookie: {
-</span><span class='line'>    //secure: true, // only https
-</span><span class='line'>    maxAge: 7*24*60*60*1000 // 1 week
-</span><span class='line'>  }
-</span><span class='line'>});
-</span><span class='line'>// 应用会话存储中间件
-</span><span class='line'>app.use(sessionMiddleware);
-</span><span class='line'>// passport登录认证
-</span><span class='line'>app.use(passport.initialize());
-</span><span class='line'>app.use(passport.session());</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssserver -k hello -p 12345</span></code></pre></td></tr></table></div></figure>
 
 
-<p>配置Redis会话存储Web-Socket会话</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sio.adapter(RedisAdapter({host: 'localhost', port: 6379}));
-</span><span class='line'>// 为socket server添加redis存储的中间件
-</span><span class='line'>sio.use(function(socket, next) {
-</span><span class='line'>  sessionMiddleware(socket.request, socket.request.res, next);
-</span><span class='line'>});
-</span><span class='line'>// 对未登录的用户禁用socket支持
-</span><span class='line'>sio.use(function(socket, next){
-</span><span class='line'>  var passport = socket.request.session.passport;
-</span><span class='line'>  if (!passport || !passport.user) {
-</span><span class='line'>    logger.debug('no socket support without login');
-</span><span class='line'>    next(new Error('Authentication error'));
-</span><span class='line'>  }
-</span><span class='line'>  else next();
-</span><span class='line'>});</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Nginx配置支持负载均衡</h2>
-
-<p>Web-Socket的连接建立需要同一个tcp连接上的多次握手支持，要求比一般的HTTP会话高一些。
-所以为实现多进程的共享会话支持，需要配置支持iphash的upstream。</p>
+<p>However, for Ubuntu 18.04 or 20.04, Shadowsocks server command <code>ssserver</code> would lead to the following error:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -259,45 +156,114 @@
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
 <span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>upstream nodes {
-</span><span class='line'>  ip_hash;
-</span><span class='line'>  server localhost:8001;
-</span><span class='line'>  server localhost:8002;
-</span><span class='line'>  server localhost:8003;
-</span><span class='line'>  server localhost:8004;
-</span><span class='line'>  keepalive 512;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>server{
-</span><span class='line'>  listen 443 ssl;
-</span><span class='line'>  server_name example.com;
-</span><span class='line'>  location / {
-</span><span class='line'>    proxy_set_header Upgrade $http_upgrade;
-</span><span class='line'>    proxy_set_header Connection "upgrade";
-</span><span class='line'>    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-</span><span class='line'>    proxy_set_header Host $host;
-</span><span class='line'>    proxy_http_version 1.1;
-</span><span class='line'>    proxy_pass http://nodes;
-</span><span class='line'>  }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2020-09-23 11:33:21 INFO     loading libcrypto from libcrypto.so.1.1
+</span><span class='line'>Traceback (most recent call last):
+</span><span class='line'>  File "/usr/local/bin/ssserver", line 8, in &lt;module&gt;
+</span><span class='line'>    sys.exit(main())
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/server.py", line 34, in main
+</span><span class='line'>    config = shell.get_config(False)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 262, in get_config
+</span><span class='line'>    check_config(config, is_local)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 124, in check_config
+</span><span class='line'>    encrypt.try_cipher(config['password'], config['method'])
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 44, in try_cipher
+</span><span class='line'>    Encryptor(key, method)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 82, in __init__
+</span><span class='line'>    self.cipher = self.get_cipher(key, method, 1,
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 109, in get_cipher
+</span><span class='line'>    return m[2](method, key, iv, op)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 76, in __init__
+</span><span class='line'>    load_openssl()
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 52, in load_openssl
+</span><span class='line'>    libcrypto.EVP_CIPHER_CTX_cleanup.argtypes = (c_void_p,)
+</span><span class='line'>  File "/usr/lib/python3.8/ctypes/__init__.py", line 386, in __getattr__
+</span><span class='line'>    func = self.__getitem__(name)
+</span><span class='line'>  File "/usr/lib/python3.8/ctypes/__init__.py", line 391, in __getitem__
+</span><span class='line'>    func = self._FuncPtr((name_or_ordinal, self))
+</span><span class='line'>AttributeError: /lib/x86_64-linux-gnu/libcrypto.so.1.1: undefined symbol: EVP_CIPHER_CTX_cleanup</span></code></pre></td></tr></table></div></figure>
 
 
-<p>注意，可以用pm2启动多个node服务进程，但必须以fork mode启动，而不是-i的集群方式启动，负载均衡完全交给nginx即可。
-如此：</p>
+<p>It seems that there&rsquo;s no symbol <code>EVP_CIPHER_CTX_cleanup</code> within libcrypto.so, which shadowsocks needs.</p>
+
+<p>check the symbols in <em>libcrypto.so.1.1</em>:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>pm2 start -f --name web1 app.js -- 8001
-</span><span class='line'>pm2 start -f --name web2 app.js -- 8002
-</span><span class='line'>pm2 start -f --name web3 app.js -- 8003
-</span><span class='line'>pm2 start -f --name web4 app.js -- 8004</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-101-145-ubuntu:~$ nm -gD /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 | grep EVP_CIPHER_CTX
+</span><span class='line'>000000000016dab0 T EVP_CIPHER_CTX_block_size
+</span><span class='line'>000000000016deb0 T EVP_CIPHER_CTX_buf_noconst
+</span><span class='line'>000000000016dae0 T EVP_CIPHER_CTX_cipher
+</span><span class='line'>000000000016e510 T EVP_CIPHER_CTX_clear_flags
+</span><span class='line'>000000000016d350 T EVP_CIPHER_CTX_copy
+</span><span class='line'>000000000016cd10 T EVP_CIPHER_CTX_ctrl
+</span><span class='line'>000000000016daf0 T EVP_CIPHER_CTX_encrypting
+</span><span class='line'>000000000016c160 T EVP_CIPHER_CTX_free
+</span><span class='line'>000000000016db10 T EVP_CIPHER_CTX_get_app_data
+</span><span class='line'>000000000016db30 T EVP_CIPHER_CTX_get_cipher_data
+</span><span class='line'>000000000016de90 T EVP_CIPHER_CTX_iv
+</span><span class='line'>000000000016db60 T EVP_CIPHER_CTX_iv_length
+</span><span class='line'>000000000016dea0 T EVP_CIPHER_CTX_iv_noconst
+</span><span class='line'>000000000016def0 T EVP_CIPHER_CTX_key_length
+</span><span class='line'>000000000016c140 T EVP_CIPHER_CTX_new
+</span><span class='line'>000000000016e060 T EVP_CIPHER_CTX_nid
+</span><span class='line'>000000000016dec0 T EVP_CIPHER_CTX_num
+</span><span class='line'>000000000016de80 T EVP_CIPHER_CTX_original_iv
+</span><span class='line'>000000000016d310 T EVP_CIPHER_CTX_rand_key
+</span><span class='line'>000000000016c090 T EVP_CIPHER_CTX_reset
+</span><span class='line'>000000000016db20 T EVP_CIPHER_CTX_set_app_data
+</span><span class='line'>000000000016db40 T EVP_CIPHER_CTX_set_cipher_data
+</span><span class='line'>000000000016e500 T EVP_CIPHER_CTX_set_flags
+</span><span class='line'>000000000016d2a0 T EVP_CIPHER_CTX_set_key_length
+</span><span class='line'>000000000016ded0 T EVP_CIPHER_CTX_set_num
+</span><span class='line'>000000000016cce0 T EVP_CIPHER_CTX_set_padding
+</span><span class='line'>000000000016e520 T EVP_CIPHER_CTX_test_flags</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>参考资料</h2>
+<p>No <code>cleanup</code>, but <code>reset</code>. And it was changed in OpenSSL 1.1.0, introduced <a href="https://www.openssl.org/docs/man1.1.0/man3/EVP_CIPHER_CTX_reset.html">here</a>.</p>
 
-<p><a href="http://socket.io/docs/using-multiple-nodes/">Socket.io doc: using multiple nodes</a></p>
+<blockquote><p>EVP_CIPHER_CTX was made opaque in OpenSSL 1.1.0. As a result, EVP_CIPHER_CTX_reset() appeared and EVP_CIPHER_CTX_cleanup() disappeared. EVP_CIPHER_CTX_init() remains as an alias for EVP_CIPHER_CTX_reset().</p></blockquote>
+
+<h3>Solution</h3>
+
+<p>Solved by replacing all (total 2) the <code>EVP_CIPHER_CTX_cleanup()</code> functions to <code>EVP_CIPHER_CTX_reset()</code> in the <em>openssl.py</em> file. With the following command:</p>
+
+<p>edit <em>/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo sed -i 's/EVP_CIPHER_CTX_cleanup/EVP_CIPHER_CTX_reset/g' /usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And restart the Shadowsocks server. Done!</p>
 </div>
 
 
@@ -313,12 +279,12 @@
 
 
 
-<time class='entry-date' datetime='2015-07-17T17:12:56+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:12 pm</span></time>
+<time class='entry-date' datetime='2020-09-23T15:03:22+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2020</span></span> <span class='time'>3:03 pm</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/http/'>http</a>, <a class='category' href='/blog/categories/javascript/'>javascript</a>, <a class='category' href='/blog/categories/nginx/'>nginx</a>
+    <a class='category' href='/blog/categories/network/'>network</a>
   
 </span>
 
@@ -327,7 +293,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/" >Tweet</a>
   
   
   
@@ -336,10 +302,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/07/16/installing-memcache-with-php/" title="Previous Post: Installing Memcache with PHP">&laquo; Installing Memcache with PHP</a>
+        <a class="basic-alignment left" href="/blog/2019/12/12/linux-seccomp-filters/" title="Previous Post: Linux seccomp filters">&laquo; Linux seccomp filters</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2015/07/29/shadowsocks-tutorial/" title="Next Post: Shadowsocks Tutorial">Shadowsocks Tutorial &raquo;</a>
       
     </p>
   </footer>
@@ -465,8 +429,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/';
-        var disqus_url = 'https://www.yangyang.cloud/blog/2015/07/17/session-with-express-and-nginx/';
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/';
         var disqus_script = 'embed.js';
       
     (function () {

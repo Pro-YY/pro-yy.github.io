@@ -4,7 +4,7 @@
   <title><![CDATA[Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-01-16T10:39:15+08:00</updated>
+  <updated>2020-09-23T15:48:49+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -12,6 +12,161 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Solved] Shadowsocks: Undefined Symbol]]></title>
+    <link href="https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/"/>
+    <updated>2020-09-23T15:03:22+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol</id>
+    <content type="html"><![CDATA[<h3>Error: undefined symbol EVP_CIPHER_CTX_cleanup</h3>
+
+<p>After installing shadowsocks on Ubuntu cloud server:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt install python3-pip
+</span><span class='line'>sudo pip3 install shadowsocks</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It should be easy for us to start server like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssserver -k hello -p 12345</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However, for Ubuntu 18.04 or 20.04, Shadowsocks server command <code>ssserver</code> would lead to the following error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2020-09-23 11:33:21 INFO     loading libcrypto from libcrypto.so.1.1
+</span><span class='line'>Traceback (most recent call last):
+</span><span class='line'>  File "/usr/local/bin/ssserver", line 8, in &lt;module&gt;
+</span><span class='line'>    sys.exit(main())
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/server.py", line 34, in main
+</span><span class='line'>    config = shell.get_config(False)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 262, in get_config
+</span><span class='line'>    check_config(config, is_local)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 124, in check_config
+</span><span class='line'>    encrypt.try_cipher(config['password'], config['method'])
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 44, in try_cipher
+</span><span class='line'>    Encryptor(key, method)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 82, in __init__
+</span><span class='line'>    self.cipher = self.get_cipher(key, method, 1,
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 109, in get_cipher
+</span><span class='line'>    return m[2](method, key, iv, op)
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 76, in __init__
+</span><span class='line'>    load_openssl()
+</span><span class='line'>  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 52, in load_openssl
+</span><span class='line'>    libcrypto.EVP_CIPHER_CTX_cleanup.argtypes = (c_void_p,)
+</span><span class='line'>  File "/usr/lib/python3.8/ctypes/__init__.py", line 386, in __getattr__
+</span><span class='line'>    func = self.__getitem__(name)
+</span><span class='line'>  File "/usr/lib/python3.8/ctypes/__init__.py", line 391, in __getitem__
+</span><span class='line'>    func = self._FuncPtr((name_or_ordinal, self))
+</span><span class='line'>AttributeError: /lib/x86_64-linux-gnu/libcrypto.so.1.1: undefined symbol: EVP_CIPHER_CTX_cleanup</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems that there&rsquo;s no symbol <code>EVP_CIPHER_CTX_cleanup</code> within libcrypto.so, which shadowsocks needs.</p>
+
+<p>check the symbols in <em>libcrypto.so.1.1</em>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brooke@VM-101-145-ubuntu:~$ nm -gD /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 | grep EVP_CIPHER_CTX
+</span><span class='line'>000000000016dab0 T EVP_CIPHER_CTX_block_size
+</span><span class='line'>000000000016deb0 T EVP_CIPHER_CTX_buf_noconst
+</span><span class='line'>000000000016dae0 T EVP_CIPHER_CTX_cipher
+</span><span class='line'>000000000016e510 T EVP_CIPHER_CTX_clear_flags
+</span><span class='line'>000000000016d350 T EVP_CIPHER_CTX_copy
+</span><span class='line'>000000000016cd10 T EVP_CIPHER_CTX_ctrl
+</span><span class='line'>000000000016daf0 T EVP_CIPHER_CTX_encrypting
+</span><span class='line'>000000000016c160 T EVP_CIPHER_CTX_free
+</span><span class='line'>000000000016db10 T EVP_CIPHER_CTX_get_app_data
+</span><span class='line'>000000000016db30 T EVP_CIPHER_CTX_get_cipher_data
+</span><span class='line'>000000000016de90 T EVP_CIPHER_CTX_iv
+</span><span class='line'>000000000016db60 T EVP_CIPHER_CTX_iv_length
+</span><span class='line'>000000000016dea0 T EVP_CIPHER_CTX_iv_noconst
+</span><span class='line'>000000000016def0 T EVP_CIPHER_CTX_key_length
+</span><span class='line'>000000000016c140 T EVP_CIPHER_CTX_new
+</span><span class='line'>000000000016e060 T EVP_CIPHER_CTX_nid
+</span><span class='line'>000000000016dec0 T EVP_CIPHER_CTX_num
+</span><span class='line'>000000000016de80 T EVP_CIPHER_CTX_original_iv
+</span><span class='line'>000000000016d310 T EVP_CIPHER_CTX_rand_key
+</span><span class='line'>000000000016c090 T EVP_CIPHER_CTX_reset
+</span><span class='line'>000000000016db20 T EVP_CIPHER_CTX_set_app_data
+</span><span class='line'>000000000016db40 T EVP_CIPHER_CTX_set_cipher_data
+</span><span class='line'>000000000016e500 T EVP_CIPHER_CTX_set_flags
+</span><span class='line'>000000000016d2a0 T EVP_CIPHER_CTX_set_key_length
+</span><span class='line'>000000000016ded0 T EVP_CIPHER_CTX_set_num
+</span><span class='line'>000000000016cce0 T EVP_CIPHER_CTX_set_padding
+</span><span class='line'>000000000016e520 T EVP_CIPHER_CTX_test_flags</span></code></pre></td></tr></table></div></figure>
+
+
+<p>No <code>cleanup</code>, but <code>reset</code>. And it was changed in OpenSSL 1.1.0, introduced <a href="https://www.openssl.org/docs/man1.1.0/man3/EVP_CIPHER_CTX_reset.html">here</a>.</p>
+
+<blockquote><p>EVP_CIPHER_CTX was made opaque in OpenSSL 1.1.0. As a result, EVP_CIPHER_CTX_reset() appeared and EVP_CIPHER_CTX_cleanup() disappeared. EVP_CIPHER_CTX_init() remains as an alias for EVP_CIPHER_CTX_reset().</p></blockquote>
+
+<h3>Solution</h3>
+
+<p>Solved by replacing all (total 2) the <code>EVP_CIPHER_CTX_cleanup()</code> functions to <code>EVP_CIPHER_CTX_reset()</code> in the <em>openssl.py</em> file. With the following command:</p>
+
+<p>edit <em>/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo sed -i 's/EVP_CIPHER_CTX_cleanup/EVP_CIPHER_CTX_reset/g' /usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And restart the Shadowsocks server. Done!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Linux Seccomp Filters]]></title>

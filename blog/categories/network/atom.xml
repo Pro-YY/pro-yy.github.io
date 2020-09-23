@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Network | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/network/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-01-16T10:39:15+08:00</updated>
+  <updated>2020-09-23T15:48:49+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -12,6 +12,104 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[[Solved] Shadowsocks: Undefined Symbol]]></title>
+    <link href="https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol/"/>
+    <updated>2020-09-23T15:03:22+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2020/09/23/solved-shadowsocks-undefined-symbol</id>
+    <content type="html"><![CDATA[<h3>Error: undefined symbol EVP_CIPHER_CTX_cleanup</h3>
+
+<p>After installing shadowsocks on Ubuntu cloud server:</p>
+
+<pre><code>sudo apt install python3-pip
+sudo pip3 install shadowsocks
+</code></pre>
+
+<p>It should be easy for us to start server like:</p>
+
+<pre><code>ssserver -k hello -p 12345
+</code></pre>
+
+<p>However, for Ubuntu 18.04 or 20.04, Shadowsocks server command <code>ssserver</code> would lead to the following error:</p>
+
+<pre><code>2020-09-23 11:33:21 INFO     loading libcrypto from libcrypto.so.1.1
+Traceback (most recent call last):
+  File "/usr/local/bin/ssserver", line 8, in &lt;module&gt;
+    sys.exit(main())
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/server.py", line 34, in main
+    config = shell.get_config(False)
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 262, in get_config
+    check_config(config, is_local)
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/shell.py", line 124, in check_config
+    encrypt.try_cipher(config['password'], config['method'])
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 44, in try_cipher
+    Encryptor(key, method)
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 82, in __init__
+    self.cipher = self.get_cipher(key, method, 1,
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/encrypt.py", line 109, in get_cipher
+    return m[2](method, key, iv, op)
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 76, in __init__
+    load_openssl()
+  File "/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py", line 52, in load_openssl
+    libcrypto.EVP_CIPHER_CTX_cleanup.argtypes = (c_void_p,)
+  File "/usr/lib/python3.8/ctypes/__init__.py", line 386, in __getattr__
+    func = self.__getitem__(name)
+  File "/usr/lib/python3.8/ctypes/__init__.py", line 391, in __getitem__
+    func = self._FuncPtr((name_or_ordinal, self))
+AttributeError: /lib/x86_64-linux-gnu/libcrypto.so.1.1: undefined symbol: EVP_CIPHER_CTX_cleanup
+</code></pre>
+
+<p>It seems that there&rsquo;s no symbol <code>EVP_CIPHER_CTX_cleanup</code> within libcrypto.so, which shadowsocks needs.</p>
+
+<p>check the symbols in <em>libcrypto.so.1.1</em>:</p>
+
+<pre><code>brooke@VM-101-145-ubuntu:~$ nm -gD /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 | grep EVP_CIPHER_CTX
+000000000016dab0 T EVP_CIPHER_CTX_block_size
+000000000016deb0 T EVP_CIPHER_CTX_buf_noconst
+000000000016dae0 T EVP_CIPHER_CTX_cipher
+000000000016e510 T EVP_CIPHER_CTX_clear_flags
+000000000016d350 T EVP_CIPHER_CTX_copy
+000000000016cd10 T EVP_CIPHER_CTX_ctrl
+000000000016daf0 T EVP_CIPHER_CTX_encrypting
+000000000016c160 T EVP_CIPHER_CTX_free
+000000000016db10 T EVP_CIPHER_CTX_get_app_data
+000000000016db30 T EVP_CIPHER_CTX_get_cipher_data
+000000000016de90 T EVP_CIPHER_CTX_iv
+000000000016db60 T EVP_CIPHER_CTX_iv_length
+000000000016dea0 T EVP_CIPHER_CTX_iv_noconst
+000000000016def0 T EVP_CIPHER_CTX_key_length
+000000000016c140 T EVP_CIPHER_CTX_new
+000000000016e060 T EVP_CIPHER_CTX_nid
+000000000016dec0 T EVP_CIPHER_CTX_num
+000000000016de80 T EVP_CIPHER_CTX_original_iv
+000000000016d310 T EVP_CIPHER_CTX_rand_key
+000000000016c090 T EVP_CIPHER_CTX_reset
+000000000016db20 T EVP_CIPHER_CTX_set_app_data
+000000000016db40 T EVP_CIPHER_CTX_set_cipher_data
+000000000016e500 T EVP_CIPHER_CTX_set_flags
+000000000016d2a0 T EVP_CIPHER_CTX_set_key_length
+000000000016ded0 T EVP_CIPHER_CTX_set_num
+000000000016cce0 T EVP_CIPHER_CTX_set_padding
+000000000016e520 T EVP_CIPHER_CTX_test_flags
+</code></pre>
+
+<p>No <code>cleanup</code>, but <code>reset</code>. And it was changed in OpenSSL 1.1.0, introduced <a href="https://www.openssl.org/docs/man1.1.0/man3/EVP_CIPHER_CTX_reset.html">here</a>.</p>
+
+<blockquote><p>EVP_CIPHER_CTX was made opaque in OpenSSL 1.1.0. As a result, EVP_CIPHER_CTX_reset() appeared and EVP_CIPHER_CTX_cleanup() disappeared. EVP_CIPHER_CTX_init() remains as an alias for EVP_CIPHER_CTX_reset().</p></blockquote>
+
+<h3>Solution</h3>
+
+<p>Solved by replacing all (total 2) the <code>EVP_CIPHER_CTX_cleanup()</code> functions to <code>EVP_CIPHER_CTX_reset()</code> in the <em>openssl.py</em> file. With the following command:</p>
+
+<p>edit <em>/usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py</em>
+<code>
+sudo sed -i 's/EVP_CIPHER_CTX_cleanup/EVP_CIPHER_CTX_reset/g' /usr/local/lib/python3.8/dist-packages/shadowsocks/crypto/openssl.py
+</code></p>
+
+<p>And restart the Shadowsocks server. Done!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Distributed Load Testing by Locust]]></title>
@@ -271,7 +369,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 <p>L0 can ssh (default port 22) to R0 by its public domain name <strong>r0.example.com</strong> with public key, like this:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh &lt;a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x75;&#115;&#x65;&#x72;&#x40;&#x72;&#x30;&#x2e;&#x65;&#x78;&#97;&#109;&#112;&#x6c;&#101;&#x2e;&#99;&#x6f;&#x6d;">&#117;&#115;&#x65;&#x72;&#64;&#114;&#48;&#x2e;&#x65;&#120;&#97;&#x6d;&#x70;&#108;&#101;&#46;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh &lt;a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#117;&#115;&#x65;&#114;&#x40;&#x72;&#x30;&#46;&#101;&#x78;&#97;&#x6d;&#x70;&#x6c;&#x65;&#x2e;&#99;&#x6f;&#x6d;">&#117;&#x73;&#x65;&#114;&#64;&#114;&#48;&#46;&#101;&#x78;&#x61;&#x6d;&#112;&#x6c;&#101;&#46;&#99;&#x6f;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/0.png" alt="" /></p>
 
@@ -292,7 +390,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 <p>The mongod has the http web service, listening only on localhost:28017. With the following command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 &lt;a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x75;&#x73;&#x65;&#114;&#x40;&#x72;&#48;&#46;&#x65;&#120;&#x61;&#x6d;&#x70;&#108;&#x65;&#x2e;&#99;&#x6f;&#109;">&#117;&#x73;&#101;&#114;&#x40;&#x72;&#x30;&#x2e;&#101;&#120;&#x61;&#x6d;&#112;&#108;&#x65;&#46;&#x63;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 28018:localhost:28017 &lt;a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#x75;&#115;&#x65;&#114;&#x40;&#x72;&#48;&#46;&#x65;&#120;&#97;&#109;&#112;&#x6c;&#x65;&#x2e;&#99;&#x6f;&#x6d;">&#117;&#x73;&#x65;&#x72;&#64;&#114;&#x30;&#46;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#x65;&#46;&#x63;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Then the remote service on 28017 will be accessed on L0&rsquo;s 28018 port from L0.
 <img src="/images/ssh-port-forwarding/1.png" alt="" /></p>
@@ -303,7 +401,7 @@ As a spoiler alert, for the even more connections (i.e. 5K, 10K&hellip;), both R
 Because R0 can access R1&rsquo;s private address of the same lan, so the following command will make R1&rsquo;s service of port 10030 accessible from L0&rsquo;s local port 10031.</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 &lt;a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#x3a;&#117;&#115;&#x65;&#x72;&#64;&#114;&#x30;&#46;&#101;&#120;&#x61;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#x6d;">&#117;&#x73;&#101;&#x72;&#64;&#114;&#48;&#x2e;&#x65;&#x78;&#97;&#x6d;&#112;&#x6c;&#101;&#x2e;&#x63;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 10031:10.0.0.101:10030 &lt;a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#x3a;&#x75;&#x73;&#x65;&#x72;&#64;&#x72;&#48;&#x2e;&#101;&#x78;&#97;&#109;&#x70;&#108;&#x65;&#x2e;&#99;&#x6f;&#109;">&#117;&#x73;&#x65;&#114;&#64;&#x72;&#48;&#x2e;&#x65;&#120;&#97;&#109;&#112;&#x6c;&#x65;&#x2e;&#x63;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>Note, use R1&rsquo;s private ip <em>10.0.0.101</em> instead of <em>localhost</em>.</p>
 
@@ -314,12 +412,12 @@ Because R0 can access R1&rsquo;s private address of the same lan, so the followi
 <p>Say R0 can access R1 through ssh command: ssh secret-user@10.0.0.101, then the following command</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 &lt;a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#x75;&#x73;&#x65;&#114;&#64;&#x72;&#x30;&#46;&#101;&#x78;&#x61;&#x6d;&#112;&#108;&#101;&#x2e;&#x63;&#111;&#109;">&#117;&#115;&#x65;&#114;&#64;&#x72;&#x30;&#x2e;&#x65;&#120;&#97;&#109;&#112;&#x6c;&#x65;&#46;&#x63;&#x6f;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NL 192.168.0.100:2222:10.0.0.101:22 &lt;a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x75;&#x73;&#x65;&#114;&#x40;&#x72;&#48;&#x2e;&#101;&#120;&#97;&#109;&#x70;&#x6c;&#x65;&#x2e;&#x63;&#x6f;&#x6d;">&#117;&#115;&#101;&#114;&#x40;&#x72;&#48;&#46;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;&#x65;&#x2e;&#99;&#111;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p>will forward L0&rsquo;s port 2222 to the R1&rsquo;s port 22, and even make L0 listening within the lan. So from L1, we can access to R1 by this command:</p>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 &lt;a href="&#x6d;&#x61;&#105;&#108;&#116;&#111;&#x3a;&#x73;&#x65;&#99;&#x72;&#x65;&#116;&#x2d;&#x75;&#x73;&#101;&#114;&#64;&#x31;&#x39;&#x32;&#x2e;&#49;&#x36;&#56;&#x2e;&#x30;&#x2e;&#49;&#48;&#x30;">&#115;&#101;&#x63;&#114;&#101;&#116;&#x2d;&#117;&#x73;&#x65;&#x72;&#x40;&#49;&#57;&#50;&#46;&#x31;&#x36;&#56;&#46;&#48;&#x2e;&#49;&#x30;&#48;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -p 2222 &lt;a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#115;&#x65;&#x63;&#x72;&#101;&#x74;&#x2d;&#x75;&#x73;&#101;&#114;&#64;&#49;&#x39;&#x32;&#46;&#49;&#x36;&#x38;&#x2e;&#48;&#46;&#49;&#x30;&#x30;">&#115;&#101;&#x63;&#x72;&#101;&#x74;&#x2d;&#117;&#x73;&#101;&#114;&#64;&#x31;&#x39;&#50;&#46;&#49;&#54;&#56;&#x2e;&#x30;&#x2e;&#x31;&#48;&#48;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/3.png" alt="" />
 Awesome!</p>
@@ -339,14 +437,14 @@ Awesome!</p>
 <h4>1. Forward R0 to L0</h4>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 &lt;a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#58;&#117;&#115;&#x65;&#114;&#64;&#114;&#48;&#x2e;&#x65;&#120;&#x61;&#109;&#112;&#x6c;&#101;&#x2e;&#99;&#111;&#109;">&#117;&#115;&#101;&#x72;&#64;&#114;&#x30;&#x2e;&#x65;&#x78;&#97;&#x6d;&#x70;&#108;&#101;&#46;&#99;&#x6f;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:localhost:22 &lt;a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#x3a;&#x75;&#x73;&#x65;&#x72;&#64;&#114;&#x30;&#x2e;&#x65;&#120;&#97;&#109;&#x70;&#108;&#101;&#x2e;&#99;&#x6f;&#109;">&#x75;&#115;&#101;&#x72;&#64;&#x72;&#48;&#x2e;&#101;&#x78;&#x61;&#x6d;&#112;&#108;&#101;&#x2e;&#99;&#x6f;&#x6d;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/4.png" alt="" /></p>
 
 <h4>2. Forward R0 to L1</h4>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 &lt;a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x75;&#115;&#x65;&#x72;&#64;&#x72;&#x30;&#x2e;&#x65;&#x78;&#x61;&#109;&#x70;&#108;&#101;&#x2e;&#99;&#x6f;&#x6d;">&#117;&#x73;&#x65;&#x72;&#64;&#x72;&#48;&#46;&#101;&#120;&#x61;&#x6d;&#x70;&#108;&#101;&#x2e;&#99;&#x6f;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -NR 2222:192.168.0.101:22 &lt;a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#58;&#x75;&#115;&#101;&#114;&#64;&#x72;&#48;&#46;&#101;&#120;&#x61;&#x6d;&#x70;&#x6c;&#101;&#46;&#x63;&#111;&#109;">&#x75;&#x73;&#x65;&#114;&#64;&#x72;&#48;&#x2e;&#x65;&#x78;&#97;&#x6d;&#112;&#108;&#x65;&#46;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure></p>
 
 <p><img src="/images/ssh-port-forwarding/5.png" alt="" /></p>
 
@@ -368,7 +466,7 @@ then the ultimate tunnel created, with which we can access L1&rsquo;s port on ma
 <h3>Example</h3>
 
 <p><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 &lt;a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x75;&#115;&#x65;&#114;&#x40;&#114;&#48;&#46;&#x65;&#120;&#97;&#x6d;&#112;&#108;&#101;&#46;&#x63;&#x6f;&#109;">&#x75;&#115;&#101;&#x72;&#x40;&#114;&#x30;&#x2e;&#x65;&#120;&#97;&#109;&#x70;&#108;&#101;&#46;&#x63;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ssh -ND 1080 &lt;a href="&#x6d;&#97;&#105;&#108;&#x74;&#111;&#58;&#x75;&#115;&#x65;&#x72;&#x40;&#114;&#x30;&#46;&#x65;&#x78;&#x61;&#x6d;&#x70;&#108;&#101;&#x2e;&#x63;&#111;&#x6d;">&#117;&#115;&#x65;&#114;&#64;&#114;&#48;&#x2e;&#x65;&#120;&#x61;&#x6d;&#x70;&#x6c;&#101;&#x2e;&#99;&#111;&#109;&lt;/a></span></code></pre></td></tr></table></div></figure>
 Then, there exists a SOCKS server on L0, and we can use it as a proxy server.
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>curl -x socks5h://localhost:1080 &lt;a href="https://www.google.com">https://www.google.com&lt;/a></span></code></pre></td></tr></table></div></figure>

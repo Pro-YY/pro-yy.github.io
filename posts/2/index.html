@@ -9,8 +9,7 @@
   <meta name="author" content="BrookeYang(杨阳)">
 
   
-  <meta name="description" content="Overview 利用SSH端口转发，可以方便实现各类翻墙打洞需求。本文详细介绍SSH端口转发的三种用法，以及其所适用的场景。 Environment L0: localhost behind NAT, with lan ip 192.168.0.100
-L1: host within same &hellip;">
+  <meta name="description" content="Test Case For test-driven development, the test case always comes first. The Phone inherits the Node.js EventEmitter: a phone is a customized event &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,6 +92,289 @@ L1: host within same &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-09-10T19:29:24+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>7:29 pm</span></time>
+        
+           | <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Test Case</h2>
+
+<p>For test-driven development, the test case always comes first. The <strong>Phone</strong> inherits the Node.js <strong>EventEmitter</strong>: a phone <strong>is a</strong> customized event emitter, only augmented with its own properties and methods.</p>
+
+<p>A phone has its own <em>name</em>, can <em>powerOn</em> itself.
+Since it&rsquo;s an event emitter, it can emit &lsquo;income&rsquo; event, and can set the handler by <em>addListener</em> as event emitter.</p>
+
+<figure class='code'><figcaption><span>test.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//var Phone = require(&#39;./phone-es5&#39;);</span>
+</span><span class='line'><span class="c1">//var Phone = require(&#39;./phone-util&#39;);</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">Phone</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./phone-es6&#39;</span><span class="p">);</span>   <span class="c1">// all implementation should have same interface</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">p1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Phone</span><span class="p">(</span><span class="s1">&#39;p1&#39;</span><span class="p">);</span>             <span class="c1">// class instantiation with parameter</span>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">powerOn</span><span class="p">();</span>                         <span class="c1">// invoke instance methodl</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span> <span class="k">instanceof</span> <span class="nx">Phone</span><span class="p">);</span>     <span class="c1">// test ISA object of super class</span>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span> <span class="k">instanceof</span> <span class="nx">EventEmitter</span><span class="p">);</span>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">p1</span><span class="p">);</span>                      <span class="c1">// print instance at run-time</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">incomeListener</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;incomming call from: &#39;</span> <span class="o">+</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">incomeListener</span><span class="p">);</span>
+</span><span class='line'><span class="nx">p1</span><span class="p">.</span><span class="nx">income</span><span class="p">(</span><span class="s1">&#39;+4478123456&#39;</span><span class="p">);</span>             <span class="c1">// invoke instance method</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span><span class="p">(</span><span class="s1">&#39;xiaomi&#39;</span><span class="p">);</span>               <span class="c1">// static/class method</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Expect the following desired output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Phone instance method] p1 is powered on.
+</span><span class='line'>true
+</span><span class='line'>true
+</span><span class='line'>Phone {
+</span><span class='line'>  domain: null,
+</span><span class='line'>  _events: {},
+</span><span class='line'>  _eventsCount: 0,
+</span><span class='line'>  _maxListeners: 20,
+</span><span class='line'>  name: 'p1' }
+</span><span class='line'>incomming call from: +4478123456
+</span><span class='line'>[Phone static method] vendor: xiaomi</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Prototype-Based Inheritance in ES5</h2>
+
+<p>In fact, javascript object is prototype-based, there isn&rsquo;t <em>class</em> at all, everything in javascript is object.
+There&rsquo;s only <em>Object Extension</em> (extends an exists object to a new object), rather than <em>Class Inheritance</em> (create new subclass that inherits the parent class).
+To implement Inheritance is to build/extend the appropriate prototype chain.
+The prototype-based inheritance is more flexible, and it&rsquo;s easy to emulate traditional textbook or java-like class or inheritance.</p>
+
+<figure class='code'><figcaption><span>phone-es5.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventEmitter</span><span class="p">();</span>
+</span><span class='line'><span class="c1">// same as: Phone.prototype = Object.create(EventEmitter.prototype);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">constructor</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">income</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone static method] vendor: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Using Node.js util.inherits</h2>
+
+<p>Node.js util module provides syntactical sugar for easily implemention of class-like inheritance.</p>
+
+<figure class='code'><figcaption><span>phone-util.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">util</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;util&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="kd">function</span> <span class="nx">Phone</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>    <span class="c1">// call parent&#39;s constructor</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>   <span class="c1">// customize with parent&#39;s method</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span><span class="p">;</span>           <span class="c1">// self field</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">util</span><span class="p">.</span><span class="nx">inherits</span><span class="p">(</span><span class="nx">Phone</span><span class="p">,</span> <span class="nx">EventEmitter</span><span class="p">);</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">powerOn</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">income</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">vendor</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone static method] vendor: &#39;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>util.inherits levarages Object.create() of ES5, the inherits line equals to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">super_</span> <span class="o">=</span> <span class="nx">EventEmitter</span><span class="p">;</span>
+</span><span class='line'><span class="nx">Phone</span><span class="p">.</span><span class="nx">prototype</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">EventEmitter</span><span class="p">.</span><span class="nx">prototype</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">constructor</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">value</span><span class="o">:</span> <span class="nx">Phone</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">enumerable</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">writable</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">configurable</span><span class="o">:</span> <span class="kc">true</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Class Syntax of ES6</h2>
+
+<p>From node-v4.0, lots of ES6 features are implemented by default(shipping). Such as <em>block scoping</em>, <em>collections</em>, <em>promises</em> and <em>Arrow Functions</em>. And <em>Class</em> syntax is also fully supported. But, note that <em>class</em> is just another syntactical sugar:</p>
+
+<blockquote><p>JavaScript classes are introduced in ECMAScript 6 and are syntactical sugar over JavaScript's existing prototype-based inheritance.<br/>The class syntax is not introducing a new object-oriented inheritance model to JavaScript.<br/>JavaScript classes provide a much simpler and clearer syntax to create objects and deal with inheritance.</p></blockquote>
+
+
+<p>With <em>class</em> syntax, class/inheritance can be implemented in a more straightforward manner.</p>
+
+<figure class='code'><figcaption><span>phone-es6.js </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="s1">&#39;use strict&#39;</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">EventEmitter</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;events&#39;</span><span class="p">).</span><span class="nx">EventEmitter</span>
+</span><span class='line'>
+</span><span class='line'><span class="kr">class</span> <span class="nx">Phone</span> <span class="kr">extends</span> <span class="nx">EventEmitter</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">constructor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kr">super</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">setMaxListeners</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">name</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="nx">powerOn</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;[Phone instance method] &#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; is powered on.&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="nx">income</span><span class="p">(</span><span class="nx">number</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;income&#39;</span><span class="p">,</span> <span class="nx">number</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="kr">static</span> <span class="nx">vendor</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="err">`</span><span class="p">[</span><span class="nx">Phone</span> <span class="kr">static</span> <span class="nx">method</span><span class="p">]</span> <span class="nx">vendor</span><span class="o">:</span> <span class="nx">$</span><span class="p">{</span><span class="nx">name</span><span class="p">}</span><span class="err">`</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Phone</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: &lsquo;use strict&rsquo; is required, and we use the template string syntax in static method (class method).
+And <em>class</em> declaration (as well as <em>let</em>, <em>const</em>, and <em>function</em> in strict mode) cannot be hoisted, unlike <em>var</em> and <em>function</em>.</p>
+
+<p>In summary, with ES6 support in Node.js v4.0, class inheritance has never been more easier. So, let&rsquo;s embrace ES6.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -818,6 +1100,10 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2020/09/23/solved-shadowsocks-undefined-symbol/">[Solved] Shadowsocks: Undefined Symbol</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a>
       </li>
     
@@ -853,15 +1139,11 @@ unless we change <em>sshd_config</em> file on <strong>R0</strong>, with the addi
         <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2015/09/10/class-inheritance-from-es5-to-es6/">Class Inheritance From ES5 to ES6</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Tag Cloud</h1>
-  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 115.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 115.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 115.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 115.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 115.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 130.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 160.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 115.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 115.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 115.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 115.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 115.0%'>ssh</a> </span>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 112.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 112.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 112.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 112.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 112.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 124.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 148.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 112.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 112.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 112.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 112.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 112.0%'>ssh</a> </span>
 </section>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- text-1 -->
