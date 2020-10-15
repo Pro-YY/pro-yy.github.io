@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Brooke's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/linux/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-09-23T15:48:49+08:00</updated>
+  <updated>2020-10-15T09:50:15+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[BrookeYang(杨阳)]]></name>
@@ -963,7 +963,7 @@ Note: we can tweak a lot in this phase.</p>
 
 <p>Add one line of code for test(fun), in file <em>init/main.c</em>, <strong>start_kernel</strong> function
 <code>
-    pr_notice("Brookes's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
+    pr_notice("Brooke's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
     pr_notice("%s", linux_banner);
 </code></p>
 
