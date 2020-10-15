@@ -48,7 +48,7 @@ Note: we can tweak a lot in this phase.
 ## Write Some Code
 Add one line of code for test(fun), in file *init/main.c*, **start_kernel** function
 ```
-	pr_notice("Brookes's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
+	pr_notice("Brooke's customized kernel starting: %s %d\n", __FUNCTION__, __LINE__);
 	pr_notice("%s", linux_banner);
 ```
 
