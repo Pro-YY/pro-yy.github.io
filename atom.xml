@@ -4,7 +4,7 @@
   <title><![CDATA[Paul's Notes]]></title>
   <link href="https://www.yangyang.cloud/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2024-08-12T10:02:56+08:00</updated>
+  <updated>2024-08-12T11:07:58+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
     <name><![CDATA[Paul (YangYang 杨阳)]]></name>
@@ -12,6 +12,190 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Store and Pin Async Functions in Rust]]></title>
+    <link href="https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/"/>
+    <updated>2024-08-12T10:19:06+08:00</updated>
+    <id>https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust</id>
+    <content type="html"><![CDATA[<p>In a typical business flow implementation, we usually store the function pointers in some collection data structures (list, hashmap..), and dynamically invoke them according to the inputs/events/conditions, with multiple thread.</p>
+
+<p>But how to with those async function? In dynamic language like JavaScript/Python, this is fairly simple and straightforward. However, this is not the case in the Rust world.</p>
+
+<p>As we&rsquo;ve tried, storing async functions in a Vec can be challenging because Rust&rsquo;s async functions (and closures) typically return different types that all implement the Future trait. However, these types are not the same, even if they have the same signature. In Rust, we have to pin and box the Future returned as well as the whole function.</p>
+
+<h2>Define the Boxed Future</h2>
+
+<p>What we need to do first iss defining a type alias for a boxed future:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Pin&lt;Box&lt;...&gt;&gt;</code>: The Pin type ensures that the Future inside the Box cannot be moved in memory, which is important for certain async operations.
+<code>dyn Future&lt;Output = T&gt; + Send + 'a</code>:</p>
+
+<ul>
+<li><code>dyn Future&lt;Output = T&gt;</code>: A dynamically dispatched future returning a value of type T.</li>
+<li><code>Send</code>: Ensures the future can be sent across thread boundaries.</li>
+<li><code>'a</code>: Ensures that all references within the future are valid for at least as long as the lifetime &lsquo;a.</li>
+</ul>
+
+
+<h2>Pin and Box the async function with wrapper</h2>
+
+<p>Then we need to wrap our async functions, making them return the boxed future.
+Say our async functions are all of the same signature:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The wrapper should be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To make our async function can be called/refered, we add <code>Send</code> and <code>Sync</code> trait bounds to our boxed function.Notice that the result Future it returns need not to be <code>Sync</code>, for we don&rsquo;t need to refer it in different threads usually, we just consume it on the fly. As a recap, <code>Send</code> means we can safely transfer ownership among threads, and <code>Sync</code> means that we can safely transfer reference among threads.</p>
+
+<h2>An example for all</h2>
+
+<p>With them all, our final code should be as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">future</span><span class="o">::</span><span class="n">Future</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">pin</span><span class="o">::</span><span class="n">Pin</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">collections</span><span class="o">::</span><span class="n">VecDeque</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">error</span><span class="o">::</span><span class="n">Error</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">boxed</span><span class="o">::</span><span class="n">Box</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed future with a specific lifetime</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed async function that takes an i32 parameter</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Another example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn2</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Function to box the async functions that take an i32 parameter</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Create a vector to store boxed async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="k">mut</span> <span class="n">async_fns</span><span class="o">:</span> <span class="n">VecDeque</span><span class="o">&lt;</span><span class="n">BoxAsyncFn</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">VecDeque</span><span class="o">::</span><span class="n">new</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Add async functions to the vector without parameters</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn1</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn2</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Parameters to pass to the async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="n">params</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Execute the async functions with parameters</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">fut</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">param</span><span class="p">)</span> <span class="k">in</span> <span class="n">async_fns</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">zip</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">iter</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">match</span> <span class="n">futures</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">block_on</span><span class="p">(</span><span class="n">fut</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nb">Ok</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Success: {}&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">),</span>
+</span><span class='line'>            <span class="nb">Err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">eprintln</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Error: {}&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">),</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some explanations here:
+- BoxFuture Type Alias simplifies the type signature for boxed futures.
+- Async Functions, like <code>async_fn1</code>, are our example async functions, containing the business logic.
+- The wrapper function <code>box_async_fn</code>, it <strong>box</strong> the async functions into the <code>BoxFuture</code> type.
+- With the Storing Vec, or you can use any collection type, like Vector or Hashmap, we store our boxed function (namely function pointer), in it.</p>
+
+<p>And of course, you can then use an async runtime like Tokio (or async-std) to run our functions for better performance, but this basic example juse demonstrates the concept.</p>
+
+<p>Fear no fraid and happy Pinning(Boxing) your async functions with Rust!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[[Solved] Shadowsocks: Undefined Symbol]]></title>

@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Store and Pin Async Functions in Rust - Paul's Notes</title>
+  <meta name="author" content="Paul (YangYang 杨阳)">
+
+  
+  <meta name="description" content="In a typical business flow implementation, we usually store the function pointers in some collection data structures (list, hashmap..), and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Paul's Notes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-127880289-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+  
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-9207933870527027",
+    enable_page_level_ads: true
+  });
+</script>
+
+
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!--
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+-->
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <img src="/images/sun.png" width="40" height="40" />
+  <h1><a href="/">Paul's Notes</a></h1>
+  
+    <h2>Experience, Record, Share.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="www.yangyang.cloud">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Store and Pin Async Functions in Rust</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2024-08-12T10:19:06+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2024</span></span> <span class='time'>10:19 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In a typical business flow implementation, we usually store the function pointers in some collection data structures (list, hashmap..), and dynamically invoke them according to the inputs/events/conditions, with multiple thread.</p>
+
+<p>But how to with those async function? In dynamic language like JavaScript/Python, this is fairly simple and straightforward. However, this is not the case in the Rust world.</p>
+
+<p>As we&rsquo;ve tried, storing async functions in a Vec can be challenging because Rust&rsquo;s async functions (and closures) typically return different types that all implement the Future trait. However, these types are not the same, even if they have the same signature. In Rust, we have to pin and box the Future returned as well as the whole function.</p>
+
+<h2>Define the Boxed Future</h2>
+
+<p>What we need to do first iss defining a type alias for a boxed future:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Pin&lt;Box&lt;...&gt;&gt;</code>: The Pin type ensures that the Future inside the Box cannot be moved in memory, which is important for certain async operations.
+<code>dyn Future&lt;Output = T&gt; + Send + 'a</code>:</p>
+
+<ul>
+<li><code>dyn Future&lt;Output = T&gt;</code>: A dynamically dispatched future returning a value of type T.</li>
+<li><code>Send</code>: Ensures the future can be sent across thread boundaries.</li>
+<li><code>'a</code>: Ensures that all references within the future are valid for at least as long as the lifetime &lsquo;a.</li>
+</ul>
+
+
+<h2>Pin and Box the async function with wrapper</h2>
+
+<p>Then we need to wrap our async functions, making them return the boxed future.
+Say our async functions are all of the same signature:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The wrapper should be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To make our async function can be called/refered, we add <code>Send</code> and <code>Sync</code> trait bounds to our boxed function.Notice that the result Future it returns need not to be <code>Sync</code>, for we don&rsquo;t need to refer it in different threads usually, we just consume it on the fly. As a recap, <code>Send</code> means we can safely transfer ownership among threads, and <code>Sync</code> means that we can safely transfer reference among threads.</p>
+
+<h2>An example for all</h2>
+
+<p>With them all, our final code should be as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">future</span><span class="o">::</span><span class="n">Future</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">pin</span><span class="o">::</span><span class="n">Pin</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">collections</span><span class="o">::</span><span class="n">VecDeque</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">error</span><span class="o">::</span><span class="n">Error</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">boxed</span><span class="o">::</span><span class="n">Box</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed future with a specific lifetime</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed async function that takes an i32 parameter</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Another example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn2</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Function to box the async functions that take an i32 parameter</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Create a vector to store boxed async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="k">mut</span> <span class="n">async_fns</span><span class="o">:</span> <span class="n">VecDeque</span><span class="o">&lt;</span><span class="n">BoxAsyncFn</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">VecDeque</span><span class="o">::</span><span class="n">new</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Add async functions to the vector without parameters</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn1</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn2</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Parameters to pass to the async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="n">params</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Execute the async functions with parameters</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">fut</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">param</span><span class="p">)</span> <span class="k">in</span> <span class="n">async_fns</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">zip</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">iter</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">match</span> <span class="n">futures</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">block_on</span><span class="p">(</span><span class="n">fut</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nb">Ok</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Success: {}&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">),</span>
+</span><span class='line'>            <span class="nb">Err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">eprintln</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Error: {}&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">),</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some explanations here:
+- BoxFuture Type Alias simplifies the type signature for boxed futures.
+- Async Functions, like <code>async_fn1</code>, are our example async functions, containing the business logic.
+- The wrapper function <code>box_async_fn</code>, it <strong>box</strong> the async functions into the <code>BoxFuture</code> type.
+- With the Storing Vec, or you can use any collection type, like Vector or Hashmap, we store our boxed function (namely function pointer), in it.</p>
+
+<p>And of course, you can then use an async runtime like Tokio (or async-std) to run our functions for better performance, but this basic example juse demonstrates the concept.</p>
+
+<p>Fear no fraid and happy Pinning(Boxing) your async functions with Rust!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Paul (YangYang 杨阳)</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2024-08-12T10:19:06+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2024</span></span> <span class='time'>10:19 am</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/" data-via="" data-counturl="https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2020/09/23/solved-shadowsocks-undefined-symbol/" title="Previous Post: [Solved] Shadowsocks: undefined symbol">&laquo; [Solved] Shadowsocks: undefined symbol</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>I'm Paul, a software developer interested in system programming as well as web service design.</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2024/08/12/store-and-pin-async-functions-in-rust/">Store and Pin Async Functions in Rust</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2020/09/23/solved-shadowsocks-undefined-symbol/">[Solved] Shadowsocks: Undefined Symbol</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2019/12/12/linux-seccomp-filters/">Linux Seccomp Filters</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/13/distributed-load-testing-by-locust/">Distributed Load Testing by Locust</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/09/worker-pool-with-eventfd/">Worker Pool With Eventfd</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/11/05/http-load-testing-with-wrk2/">Http Load Testing With Wrk2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/23/building-linux-kernel-module/">Building Linux Kernel Module</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/22/compiling-kernel-with-kali-linux/">Compiling Kernel With Kali Linux</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/10/24/solved-ffmpeg-build-libmp3lame-not-found/">[Solved] FFMPEG: Libmp3lame Not Found</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/06/28/nodejs-circular-dependencies/">Nodejs Circular Dependencies</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Tag Cloud</h1>
+  <span id="tag-cloud"><a href='/blog/categories/blog' style='font-size: 112.0%'>blog</a> <a href='/blog/categories/cloud' style='font-size: 112.0%'>cloud</a> <a href='/blog/categories/docker' style='font-size: 112.0%'>docker</a> <a href='/blog/categories/ffmpeg' style='font-size: 112.0%'>ffmpeg</a> <a href='/blog/categories/http' style='font-size: 112.0%'>http</a> <a href='/blog/categories/javascript' style='font-size: 124.0%'>javascript</a> <a href='/blog/categories/linux' style='font-size: 148.0%'>linux</a> <a href='/blog/categories/memcache' style='font-size: 112.0%'>memcache</a> <a href='/blog/categories/network' style='font-size: 160.0%'>network</a> <a href='/blog/categories/nginx' style='font-size: 112.0%'>nginx</a> <a href='/blog/categories/node-dot-js' style='font-size: 112.0%'>node.js</a> <a href='/blog/categories/postgresql' style='font-size: 112.0%'>postgresql</a> <a href='/blog/categories/ssh' style='font-size: 112.0%'>ssh</a> </span>
+</section>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="2966057111"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-2 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="7019361500"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- text-0 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9207933870527027"
+     data-ad-slot="4090602374"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+  Copyright &copy; 2024 - Paul (YangYang 杨阳)
+  <!-- <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -->
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'yangyangcloud';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/';
+        var disqus_url = 'https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

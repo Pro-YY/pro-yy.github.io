@@ -9,10 +9,7 @@
   <meta name="author" content="Paul (YangYang 杨阳)">
 
   
-  <meta name="description" content="Error: undefined symbol EVP_CIPHER_CTX_cleanup After installing shadowsocks on Ubuntu cloud server: 1
-2
-sudo apt install python3-pip
-sudo pip3 &hellip;">
+  <meta name="description" content="In a typical business flow implementation, we usually store the function pointers in some collection data structures (list, hashmap..), and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -95,6 +92,213 @@ sudo pip3 &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2024/08/12/store-and-pin-async-functions-in-rust/">Store and Pin Async Functions in Rust</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2024-08-12T10:19:06+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2024</span></span> <span class='time'>10:19 am</span></time>
+        
+           | <a href="/blog/2024/08/12/store-and-pin-async-functions-in-rust/#disqus_thread"
+             data-disqus-identifier="https://www.yangyang.cloud/blog/2024/08/12/store-and-pin-async-functions-in-rust/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In a typical business flow implementation, we usually store the function pointers in some collection data structures (list, hashmap..), and dynamically invoke them according to the inputs/events/conditions, with multiple thread.</p>
+
+<p>But how to with those async function? In dynamic language like JavaScript/Python, this is fairly simple and straightforward. However, this is not the case in the Rust world.</p>
+
+<p>As we&rsquo;ve tried, storing async functions in a Vec can be challenging because Rust&rsquo;s async functions (and closures) typically return different types that all implement the Future trait. However, these types are not the same, even if they have the same signature. In Rust, we have to pin and box the Future returned as well as the whole function.</p>
+
+<h2>Define the Boxed Future</h2>
+
+<p>What we need to do first iss defining a type alias for a boxed future:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Pin&lt;Box&lt;...&gt;&gt;</code>: The Pin type ensures that the Future inside the Box cannot be moved in memory, which is important for certain async operations.
+<code>dyn Future&lt;Output = T&gt; + Send + 'a</code>:</p>
+
+<ul>
+<li><code>dyn Future&lt;Output = T&gt;</code>: A dynamically dispatched future returning a value of type T.</li>
+<li><code>Send</code>: Ensures the future can be sent across thread boundaries.</li>
+<li><code>'a</code>: Ensures that all references within the future are valid for at least as long as the lifetime &lsquo;a.</li>
+</ul>
+
+
+<h2>Pin and Box the async function with wrapper</h2>
+
+<p>Then we need to wrap our async functions, making them return the boxed future.
+Say our async functions are all of the same signature:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The wrapper should be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To make our async function can be called/refered, we add <code>Send</code> and <code>Sync</code> trait bounds to our boxed function.Notice that the result Future it returns need not to be <code>Sync</code>, for we don&rsquo;t need to refer it in different threads usually, we just consume it on the fly. As a recap, <code>Send</code> means we can safely transfer ownership among threads, and <code>Sync</code> means that we can safely transfer reference among threads.</p>
+
+<h2>An example for all</h2>
+
+<p>With them all, our final code should be as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">future</span><span class="o">::</span><span class="n">Future</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">pin</span><span class="o">::</span><span class="n">Pin</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">collections</span><span class="o">::</span><span class="n">VecDeque</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">error</span><span class="o">::</span><span class="n">Error</span><span class="p">;</span>
+</span><span class='line'><span class="kn">use</span> <span class="n">std</span><span class="o">::</span><span class="n">boxed</span><span class="o">::</span><span class="n">Box</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed future with a specific lifetime</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Pin</span><span class="o">&lt;</span><span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="n">T</span><span class="o">&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="nl">&#39;a</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Define a type alias for a boxed async function that takes an i32 parameter</span>
+</span><span class='line'><span class="k">type</span> <span class="n">BoxAsyncFn</span> <span class="o">=</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxFuture</span><span class="o">&lt;</span><span class="k">&#39;static</span><span class="p">,</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn1</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Another example async function that takes an i32 parameter and returns a Result</span>
+</span><span class='line'><span class="n">async</span> <span class="k">fn</span> <span class="n">async_fn2</span><span class="p">(</span><span class="n">v</span><span class="o">:</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nb">Ok</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Function to box the async functions that take an i32 parameter</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">box_async_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="p">,</span> <span class="n">Fut</span><span class="o">&gt;</span><span class="p">(</span><span class="n">f</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxAsyncFn</span>
+</span><span class='line'><span class="n">where</span>
+</span><span class='line'>    <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fut</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="n">Sync</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Fut</span><span class="o">:</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Output</span> <span class="o">=</span> <span class="nb">Result</span><span class="o">&lt;</span><span class="kt">i32</span><span class="p">,</span> <span class="n">Box</span><span class="o">&lt;</span><span class="n">dyn</span> <span class="n">Error</span> <span class="o">+</span> <span class="nb">Send</span><span class="o">&gt;&gt;&gt;</span> <span class="o">+</span> <span class="nb">Send</span> <span class="o">+</span> <span class="k">&#39;static</span><span class="p">,</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">Box</span><span class="o">::</span><span class="n">pin</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Create a vector to store boxed async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="k">mut</span> <span class="n">async_fns</span><span class="o">:</span> <span class="n">VecDeque</span><span class="o">&lt;</span><span class="n">BoxAsyncFn</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">VecDeque</span><span class="o">::</span><span class="n">new</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Add async functions to the vector without parameters</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn1</span><span class="p">));</span>
+</span><span class='line'>    <span class="n">async_fns</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">box_async_fn</span><span class="p">(</span><span class="n">async_fn2</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Parameters to pass to the async functions</span>
+</span><span class='line'>    <span class="kd">let</span> <span class="n">params</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Execute the async functions with parameters</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">fut</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">param</span><span class="p">)</span> <span class="k">in</span> <span class="n">async_fns</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">zip</span><span class="p">(</span><span class="n">params</span><span class="p">.</span><span class="n">iter</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">match</span> <span class="n">futures</span><span class="o">::</span><span class="n">executor</span><span class="o">::</span><span class="n">block_on</span><span class="p">(</span><span class="n">fut</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nb">Ok</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Success: {}&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">),</span>
+</span><span class='line'>            <span class="nb">Err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">eprintln</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Error: {}&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">),</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some explanations here:
+- BoxFuture Type Alias simplifies the type signature for boxed futures.
+- Async Functions, like <code>async_fn1</code>, are our example async functions, containing the business logic.
+- The wrapper function <code>box_async_fn</code>, it <strong>box</strong> the async functions into the <code>BoxFuture</code> type.
+- With the Storing Vec, or you can use any collection type, like Vector or Hashmap, we store our boxed function (namely function pointer), in it.</p>
+
+<p>And of course, you can then use an async runtime like Tokio (or async-std) to run our functions for better performance, but this basic example juse demonstrates the concept.</p>
+
+<p>Fear no fraid and happy Pinning(Boxing) your async functions with Rust!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2345,196 +2549,6 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-31T14:03:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>2:03 pm</span></time>
-        
-           | <a href="/blog/2016/01/31/docker-practice-storage/#disqus_thread"
-             data-disqus-identifier="https://www.yangyang.cloud/blog/2016/01/31/docker-practice-storage/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Docker基础</h2>
-
-<h3>简介</h3>
-
-<p><a href="https://www.docker.com/what-docker">Docker</a>作为著名的开源容器引擎，在业界有着广泛的使用。
-由于使用了现代Linux内核高级特性(如cgroup，namespace)，它可以更高效更安全地使用宿主机的计算、存储、网络等资源。
-容器技术作为轻量级的虚拟化技术，相比传统的基于Hypervisor和VM的虚拟化更适合大规模的横向扩展。
-容器技术独立与上层应用语言和底层操作系统，将代码和其所依赖的环境整体打包，实现了“构建一次，处处运行”的目标。
-在构建应用方面，容器技术可以大大提升运维工作的效率，缩短应用开发上线发布周期，甚至重新定义了软件开发、测试、交付和部署的流程。</p>
-
-<p>本文作为Docker的初级实践总结，描述了Docker的<strong>安装及基本命令</strong>，并以<strong>Redis</strong>和<strong>PostgreSQL</strong>的服务部署为例，记录Docker官方镜像服务部署的过程。</p>
-
-<h3>安装</h3>
-
-<p>在ubuntu 14.04下安装参考<a href="https://docs.docker.com/engine/installation/ubuntulinux/">安装文档</a>，过程如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-</span><span class='line'>sudo su -c "echo 'deb https://apt.dockerproject.org/repo ubuntu-trusty main' &gt; /etc/apt/sources.list.d/docker.list"
-</span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get install docker-engine</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>免sudo执行docker</h4>
-
-<p>将指定用户加入docker组，并重新登录</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo usermod -aG docker $USER</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>更改docker默认数据目录</h4>
-
-<p>更改<em>/etc/default/docker</em></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>DOCKER_OPTS="-g /data/var/lib/docker"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>重启服务</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo service docker restart</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>基本操作</h3>
-
-<p>常用启动容器实例模式</p>
-
-<p>后台执行容器 <strong>-d</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -d ubuntu /bin/bash -c "vmstat 5"  # docker logs -f 查看输出</span></code></pre></td></tr></table></div></figure>
-
-
-<p>执行完命令即时删除 <strong>&ndash;rm</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --rm ubuntu /bin/bash -c "uname -a"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>交互式 <strong>-it</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -it ubuntu /bin/bash   # 操作完成后容器停止，可以start，再attach
-</span><span class='line'>docker exec -it CONTAINER_NAME /bin/bash # shell到后台运行的容器</span></code></pre></td></tr></table></div></figure>
-
-
-<p>查看子命令使用: docker help inspect</p>
-
-<p>列出所有运行的容器列表: docker ps</p>
-
-<p>删除所有容器: docker rm $(docker ps -aq)</p>
-
-<p>搜索镜像: <a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
-
-<h2>Redis服务部署</h2>
-
-<p><a href="http://redis.io/">Redis</a>是开源的内存数据结构存储引擎，常用来实现缓存服务、键值存储引擎以及Pub/Sub引擎等。用Docker部署Redis服务非常便捷。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-redis -p 127.0.0.1:49514:6379 -d redis</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Docker会做以下工作:</p>
-
-<p>在本地需找官方<a href="https://hub.docker.com/_/redis/">redis官方镜像</a>，如果没有则下载；用官方镜像启动名为<em>myapp-redis</em>的容器实例；将实例开放的默认redis服务6379端口映射到宿主系统的本地49514端口。</p>
-
-<p>查看redis服务的日志</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker logs -f myapp-redis</span></code></pre></td></tr></table></div></figure>
-
-
-<p>验证:通过宿主系统的redis客户端访问</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>redis-cli -p 49514</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>PostgreSQL服务部署</h2>
-
-<p><a href="http://www.postgresql.org/">PostgreSQL</a>是开源的关系型数据库。用Docker部署PostgreSQL服务同样直观便捷。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
-</span><span class='line'>-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
-</span><span class='line'>-e POSTGRES_PASSWORD=postgres                               \
-</span><span class='line'>-d postgres</span></code></pre></td></tr></table></div></figure>
-
-
-<p>同样的，docker会下载<a href="https://hub.docker.com/_/postgres/">postgresql官方镜像</a>，启动myapp-postgres实例，并将服务端口映射到宿主机的49513端口。</p>
-
-<p>注意这里用到<strong>-v</strong>参数，可以为容器的volume(数据卷)指定映射目录。
-官方的postgresql镜像将<em>/var/lib/postgresql/data/</em>目录作为volume处理，使得单独存储数据变得简单。
-可以简单的理解为将<em>$(pwd)/pg-data</em>作为设备挂载到容器的<em>/var/lib/postgresql/data/</em>目录。这样，备份和迁移都很方便，不依赖容器。</p>
-
-<p><strong>-e</strong>参数为创建容器时指定的环境变量，这里将postrgres超级用户的密码设置为postgres。</p>
-
-<p>然后便可以在宿主机通过posgresql的客户端(如psql、createuser、createdb)访问服务了。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># 以postgres超级用户测试数据连接
-</span><span class='line'>PGPASSWORD=postgres psql -h localhost -p 49513 -U postgres -e
-</span><span class='line'># 创建用户myapp，并设置访问权限(可以创建角色和数据库)及密码
-</span><span class='line'>PGPASSWORD=postgres createuser -h localhost -p 49513 -U postgres -rdeP myapp
-</span><span class='line'># 以新用户创建同名数据库
-</span><span class='line'>PGPASSWORD=myapp-pass createdb -h localhost -p 49513 -U myapp -e myapp</span></code></pre></td></tr></table></div></figure>
-
-
-<p>官方镜像还支持若干个环境变量，如初始superuser的用户名及密码等等。以下一个命令即可完成以上流程。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --name myapp-postgres -p 127.0.0.1:49513:5432    \
-</span><span class='line'>-v $(pwd)/pg-data:/var/lib/postgresql/data                  \
-</span><span class='line'>-e POSTGRES_PASSWORD=myapp-pass -e POSTGRES_USER=myapp      \
-</span><span class='line'>-d postgres</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>总结</h2>
-
-<p>通过以上两个例子，创建了两个容器实例，分别是redis服务和有分离数据卷的postgresql服务。
-通过应用Docker容器技术，最核心的是简化测试交付部署流程，并使这些流程更容易地实现自动化。
-从而使开发者更多地专注于业务逻辑，加速其价值提升。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -2552,6 +2566,10 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2024/08/12/store-and-pin-async-functions-in-rust/">Store and Pin Async Functions in Rust</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2020/09/23/solved-shadowsocks-undefined-symbol/">[Solved] Shadowsocks: Undefined Symbol</a>
@@ -2587,10 +2605,6 @@ main模块引用了auth模块，并调用了其导出的authenticate方法。即
     
       <li class="post">
         <a href="/blog/2016/06/28/nodejs-circular-dependencies/">Nodejs Circular Dependencies</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/01/31/docker-practice-storage/">Docker Practice: Storage</a>
       </li>
     
   </ul>
