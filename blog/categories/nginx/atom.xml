@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Nginx | Brooke's Notes]]></title>
+  <title><![CDATA[Category: Nginx | Paul's Notes]]></title>
   <link href="https://www.yangyang.cloud/blog/categories/nginx/atom.xml" rel="self"/>
   <link href="https://www.yangyang.cloud/"/>
-  <updated>2020-10-26T17:00:27+08:00</updated>
+  <updated>2024-08-12T10:02:56+08:00</updated>
   <id>https://www.yangyang.cloud/</id>
   <author>
-    <name><![CDATA[BrookeYang(杨阳)]]></name>
+    <name><![CDATA[Paul (YangYang 杨阳)]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
